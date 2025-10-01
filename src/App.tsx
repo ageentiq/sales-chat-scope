@@ -21,11 +21,10 @@ function AppContent() {
   return (
     <BrowserRouter>
       <SidebarProvider>
-        <div className="flex flex-row-reverse min-h-screen w-full">
-          <AppSidebar />
-          <main className="flex-1 flex flex-col">
+        <div className="flex min-h-screen w-full">
+          <main className="flex-1 flex flex-col order-1">
             <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <div className="flex h-14 items-center gap-4 px-4">
+              <div className="flex h-14 items-center px-4" dir="ltr">
                 <SidebarTrigger className="shrink-0" />
                 <div className="flex-1" />
                 <Button
@@ -48,6 +47,7 @@ function AppContent() {
               </Routes>
             </div>
           </main>
+          <AppSidebar />
         </div>
       </SidebarProvider>
     </BrowserRouter>
