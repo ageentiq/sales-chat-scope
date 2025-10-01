@@ -25,16 +25,17 @@ function AppContent() {
           <main className="flex-1 flex flex-col order-1">
             <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <div className="flex h-14 items-center gap-2 px-4" dir="ltr">
-                <SidebarTrigger className="shrink-0" />
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={toggleLanguage}
                   className="gap-2 shrink-0"
+                  aria-label="Toggle language"
                 >
                   <Languages className="h-4 w-4" />
                   <span className="text-sm font-medium">{language === 'ar' ? 'English' : 'عربي'}</span>
                 </Button>
+                <SidebarTrigger className="shrink-0" />
               </div>
             </header>
             <div className="flex-1 overflow-auto">
