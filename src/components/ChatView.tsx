@@ -2,7 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, MessageSquare, User, Bot } from "lucide-react";
-import { getConversationsByGroupId } from "@/data/mockData";
+import { useConversationsByGroupId } from "@/hooks/useConversations";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { getObjectIdString } from "@/lib/utils";
 
 interface ChatViewProps {
   conversationId: string;
@@ -10,10 +12,11 @@ interface ChatViewProps {
 }
 
 export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
-  const messages = getConversationsByGroupId(conversationId);
+  const { t, language } = useLanguage();
+  const { data: messages = [], isLoading } = useConversationsByGroupId(conversationId);
 
   const formatTimestamp = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString('en-US', {
+    return new Date(timestamp).toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
       hour: '2-digit',
       minute: '2-digit',
       month: 'short',
@@ -40,7 +43,7 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
           </Button>
           <div className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-primary" />
-            <CardTitle>Conversation Details</CardTitle>
+            <CardTitle>{t('conversationDetails')}</CardTitle>
           </div>
           <Badge variant="outline">ID: {conversationId}</Badge>
         </div>
@@ -48,8 +51,13 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
       
       <CardContent className="p-0">
         <div className="h-[600px] overflow-y-auto p-6 space-y-6">
-          {messages.map((message) => (
-            <div key={message._id} className="space-y-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-muted-foreground">Loading messages...</div>
+            </div>
+          ) : (
+            messages.map((message) => (
+            <div key={getObjectIdString(message._id)} className="space-y-4">
               {/* Customer Message (Inbound) */}
               <div className="flex gap-3">
                 <div className="flex-shrink-0">
@@ -84,7 +92,7 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                     {message.outbound}
                   </div>
                   <div className="text-xs text-muted-foreground mt-1 px-1">
-                    Sales Team • {formatTimestamp(message.timestamp)}
+                    {t('salesTeam')} • {formatTimestamp(message.timestamp)}
                   </div>
                 </div>
                 <div className="flex-shrink-0">
@@ -94,13 +102,14 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                 </div>
               </div>
             </div>
-          ))}
+          ))
+          )}
           
-          {messages.length === 0 && (
+          {!isLoading && messages.length === 0 && (
             <div className="flex items-center justify-center h-full text-center">
               <div className="text-muted-foreground">
                 <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No messages found for this conversation</p>
+                <p>{t('noMessagesFound')}</p>
               </div>
             </div>
           )}

@@ -3,7 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, MessageCircle, Clock } from "lucide-react";
-import { ConversationMessage, getUniqueConversations } from "@/data/mockData";
+import { ConversationMessage } from "@/data/mockData";
+import { useUniqueConversations } from "@/hooks/useConversations";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ConversationListProps {
   onConversationSelect: (conversationId: string) => void;
@@ -14,17 +16,21 @@ export const ConversationList = ({
   onConversationSelect, 
   selectedConversationId 
 }: ConversationListProps) => {
+  const { t, language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
-  const conversations = getUniqueConversations();
+  const { data: conversations = [], isLoading } = useUniqueConversations();
   
-  const filteredConversations = conversations.filter(conv => 
+  // Fallback to ensure we always have data
+  const safeConversations = conversations || [];
+  
+  const filteredConversations = safeConversations.filter(conv => 
     conv.conversation_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
     conv.inbound.toLowerCase().includes(searchTerm.toLowerCase()) ||
     conv.outbound.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const formatTimestamp = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString('en-US', {
+    return new Date(timestamp).toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -41,12 +47,12 @@ export const ConversationList = ({
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2">
           <MessageCircle className="h-5 w-5 text-primary" />
-          Conversations
+          {t('conversations')}
         </CardTitle>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search conversations..."
+            placeholder={t('searchConversations')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -55,7 +61,13 @@ export const ConversationList = ({
       </CardHeader>
       <CardContent className="p-0">
         <div className="max-h-[600px] overflow-y-auto">
-          {filteredConversations.map((conversation) => (
+          {isLoading ? (
+            <div className="p-8 text-center text-muted-foreground">
+              <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Loading conversations...</p>
+            </div>
+          ) : (
+            filteredConversations.map((conversation) => (
             <div
               key={conversation.conversation_id}
               onClick={() => onConversationSelect(conversation.conversation_id)}
@@ -77,25 +89,26 @@ export const ConversationList = ({
               
               <div className="space-y-2">
                 <div className="text-sm">
-                  <span className="font-medium text-muted-foreground">Customer: </span>
+                  <span className="font-medium text-muted-foreground">{t('customer')}: </span>
                   <span className="text-foreground" dir="auto">
                     {truncateText(conversation.inbound)}
                   </span>
                 </div>
                 <div className="text-sm">
-                  <span className="font-medium text-muted-foreground">Response: </span>
+                  <span className="font-medium text-muted-foreground">{t('response')}: </span>
                   <span className="text-foreground" dir="auto">
                     {truncateText(conversation.outbound)}
                   </span>
                 </div>
               </div>
             </div>
-          ))}
+          ))
+          )}
           
-          {filteredConversations.length === 0 && (
+          {!isLoading && filteredConversations.length === 0 && (
             <div className="p-8 text-center text-muted-foreground">
               <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No conversations found</p>
+              <p>{t('noConversationsFound')}</p>
             </div>
           )}
         </div>

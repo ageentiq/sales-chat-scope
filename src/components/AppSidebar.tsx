@@ -23,7 +23,7 @@ export function AppSidebar() {
   ];
 
   return (
-    <Sidebar collapsible="icon" side={language === 'ar' ? 'left' : 'right'}>
+    <Sidebar collapsible="icon" side="right">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>{t('mainMenu')}</SidebarGroupLabel>
