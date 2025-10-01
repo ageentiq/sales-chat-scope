@@ -23,27 +23,29 @@ function AppContent() {
       <SidebarProvider>
         <div className="flex min-h-screen w-full">
           <AppSidebar />
-          <main className="flex-1">
-            <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <div className="flex h-14 items-center px-4 justify-between">
-                <SidebarTrigger />
+          <main className="flex-1 flex flex-col">
+            <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <div className="flex h-14 items-center justify-between px-4">
+                <SidebarTrigger className="shrink-0" />
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={toggleLanguage}
-                  className="gap-2"
+                  className="gap-2 shrink-0"
                 >
                   <Languages className="h-4 w-4" />
-                  <span className="text-sm">{language === 'ar' ? 'EN' : 'ع'}</span>
+                  <span className="text-sm font-medium">{language === 'ar' ? 'English' : 'عربي'}</span>
                 </Button>
               </div>
+            </header>
+            <div className="flex-1 overflow-auto">
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/contacts" element={<Contacts />} />
+                <Route path="/messages" element={<Messages />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
             </div>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/contacts" element={<Contacts />} />
-              <Route path="/messages" element={<Messages />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
           </main>
         </div>
       </SidebarProvider>
