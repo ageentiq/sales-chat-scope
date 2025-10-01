@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 
 export function AppSidebar() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   const items = [
     { title: t('home'), url: "/", icon: Home },
@@ -23,7 +23,7 @@ export function AppSidebar() {
   ];
 
   return (
-    <Sidebar collapsible="icon" side="right">
+    <Sidebar collapsible="icon" side={language === 'ar' ? 'left' : 'right'}>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>{t('mainMenu')}</SidebarGroupLabel>

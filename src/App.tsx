@@ -21,10 +21,11 @@ function AppContent() {
   return (
     <BrowserRouter>
       <SidebarProvider>
-        <div className="flex min-h-screen w-full" dir="ltr">
+        <div className="flex min-h-screen w-full">
+          {language === 'ar' && <AppSidebar />}
           <main className="flex-1 flex flex-col">
             <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <div className="flex h-14 items-center gap-2 pr-4 pl-0" dir="ltr">
+              <div className="flex h-14 items-center gap-2 px-4" dir="ltr">
                 <Button
                   variant="outline"
                   size="sm"
@@ -47,7 +48,7 @@ function AppContent() {
               </Routes>
             </div>
           </main>
-          <AppSidebar />
+          {language === 'en' && <AppSidebar />}
         </div>
       </SidebarProvider>
     </BrowserRouter>
