@@ -1,5 +1,6 @@
 import { Home, Users, MessageSquare } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Sidebar,
   SidebarContent,
@@ -9,24 +10,23 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const items = [
-  { title: "الرئيسية", url: "/", icon: Home },
-  { title: "جهات الاتصال", url: "/contacts", icon: Users },
-  { title: "الرسائل", url: "/messages", icon: MessageSquare },
-];
-
 export function AppSidebar() {
-  const { open } = useSidebar();
+  const { t } = useLanguage();
+  
+  const items = [
+    { title: t('home'), url: "/", icon: Home },
+    { title: t('contacts'), url: "/contacts", icon: Users },
+    { title: t('messages'), url: "/messages", icon: MessageSquare },
+  ];
 
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>القائمة الرئيسية</SidebarGroupLabel>
+          <SidebarGroupLabel>{t('mainMenu')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (

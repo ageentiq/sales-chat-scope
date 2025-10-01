@@ -5,6 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./components/AppSidebar";
+import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
+import { Button } from "@/components/ui/button";
+import { Languages } from "lucide-react";
 import Dashboard from "./pages/Dashboard";
 import Contacts from "./pages/Contacts";
 import Messages from "./pages/Messages";
@@ -12,32 +15,51 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function AppContent() {
+  const { language, toggleLanguage } = useLanguage();
+
+  return (
+    <BrowserRouter>
+      <SidebarProvider>
+        <div className="flex min-h-screen w-full">
+          <AppSidebar />
+          <main className="flex-1">
+            <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <div className="flex h-14 items-center px-4 justify-between">
+                <SidebarTrigger />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleLanguage}
+                  className="gap-2"
+                >
+                  <Languages className="h-4 w-4" />
+                  <span className="text-sm">{language === 'ar' ? 'EN' : 'ع'}</span>
+                </Button>
+              </div>
+            </div>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/contacts" element={<Contacts />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+        </div>
+      </SidebarProvider>
+    </BrowserRouter>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <SidebarProvider>
-          <div className="flex min-h-screen w-full">
-            <AppSidebar />
-            <main className="flex-1">
-              <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="flex h-14 items-center px-4">
-                  <SidebarTrigger />
-                </div>
-              </div>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/contacts" element={<Contacts />} />
-                <Route path="/messages" element={<Messages />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </main>
-          </div>
-        </SidebarProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+    <LanguageProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AppContent />
+      </TooltipProvider>
+    </LanguageProvider>
   </QueryClientProvider>
 );
 
