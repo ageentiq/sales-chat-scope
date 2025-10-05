@@ -21,21 +21,25 @@ function AppContent() {
   return (
     <BrowserRouter>
       <SidebarProvider>
-        <div className="flex min-h-screen w-full">
+        <div className="flex min-h-screen w-full bg-gray-50">
+          <AppSidebar />
           <main className="flex-1 flex flex-col w-0 min-w-0">
-            <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <div className="flex h-14 items-center gap-2 pl-6 pr-4" dir="ltr">
+            {/* Top Navigation Bar */}
+            <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
+              <div className="flex h-16 items-center justify-between px-6">
+                <div className="flex items-center gap-3">
+                  <SidebarTrigger className="text-gray-600 hover:text-gray-900" />
+                </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={toggleLanguage}
-                  className="gap-2 shrink-0"
+                  className="gap-2 border-gray-300 hover:bg-gray-50"
                   aria-label="Toggle language"
                 >
                   <Languages className="h-4 w-4" />
                   <span className="text-sm font-medium">{language === 'ar' ? 'English' : 'عربي'}</span>
                 </Button>
-                <SidebarTrigger className="shrink-0" />
               </div>
             </header>
             <div className="flex-1 overflow-auto">
@@ -47,7 +51,6 @@ function AppContent() {
               </Routes>
             </div>
           </main>
-          <AppSidebar />
         </div>
       </SidebarProvider>
     </BrowserRouter>

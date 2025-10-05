@@ -1,22 +1,37 @@
 import { ConversationMessage } from '@/data/mockData';
 
 // Configuration for API calls
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'http://localhost:8081/api';
 
 export class ConversationService {
   static async getAllConversations(): Promise<ConversationMessage[]> {
     try {
+      console.log('🔍 [ConversationService] Fetching conversations from:', `${API_BASE_URL}/conversations`);
       const response = await fetch(`${API_BASE_URL}/conversations`);
-      const result = await response.json();
+      console.log('📡 [ConversationService] Response status:', response.status, response.statusText);
       
-      if (result.success && result.data) {
-        return result.data;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      console.error('Failed to fetch conversations:', result.error);
+      const result = await response.json();
+      console.log('📊 [ConversationService] API Response:', result);
+      
+      if (result.success && result.data) {
+        console.log('✅ [ConversationService] Successfully fetched', result.data.length, 'conversations');
+        // Normalize MongoDB data format
+        const normalizedData = result.data.map((item: any) => ({
+          ...item,
+          _id: typeof item._id === 'string' ? item._id : item._id?.$oid || item._id
+        }));
+        console.log('🔄 [ConversationService] Normalized data:', normalizedData);
+        return normalizedData;
+      }
+      
+      console.error('❌ [ConversationService] Failed to fetch conversations:', result.error);
       return [];
     } catch (error) {
-      console.error('Error fetching conversations:', error);
+      console.error('💥 [ConversationService] Error fetching conversations:', error);
       return [];
     }
   }
@@ -27,7 +42,12 @@ export class ConversationService {
       const result = await response.json();
       
       if (result.success && result.data) {
-        return result.data;
+        // Normalize MongoDB data format
+        const normalizedData = result.data.map((item: any) => ({
+          ...item,
+          _id: typeof item._id === 'string' ? item._id : item._id?.$oid || item._id
+        }));
+        return normalizedData;
       }
       
       console.error('Failed to fetch conversations by group ID:', result.error);
@@ -40,17 +60,32 @@ export class ConversationService {
 
   static async getUniqueConversations(): Promise<ConversationMessage[]> {
     try {
+      console.log('🔍 [ConversationService] Fetching unique conversations from:', `${API_BASE_URL}/conversations/unique`);
       const response = await fetch(`${API_BASE_URL}/conversations/unique`);
-      const result = await response.json();
+      console.log('📡 [ConversationService] Unique response status:', response.status, response.statusText);
       
-      if (result.success && result.data) {
-        return result.data;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      console.error('Failed to fetch unique conversations:', result.error);
+      const result = await response.json();
+      console.log('📊 [ConversationService] Unique API Response:', result);
+      
+      if (result.success && result.data) {
+        console.log('✅ [ConversationService] Successfully fetched', result.data.length, 'unique conversations');
+        // Normalize MongoDB data format
+        const normalizedData = result.data.map((item: any) => ({
+          ...item,
+          _id: typeof item._id === 'string' ? item._id : item._id?.$oid || item._id
+        }));
+        console.log('🔄 [ConversationService] Normalized unique data:', normalizedData);
+        return normalizedData;
+      }
+      
+      console.error('❌ [ConversationService] Failed to fetch unique conversations:', result.error);
       return [];
     } catch (error) {
-      console.error('Error fetching unique conversations:', error);
+      console.error('💥 [ConversationService] Error fetching unique conversations:', error);
       return [];
     }
   }
@@ -68,7 +103,12 @@ export class ConversationService {
       const result = await response.json();
       
       if (result.success && result.data) {
-        return result.data;
+        // Normalize MongoDB data format
+        const normalizedData = {
+          ...result.data,
+          _id: typeof result.data._id === 'string' ? result.data._id : result.data._id?.$oid || result.data._id
+        };
+        return normalizedData;
       }
       
       console.error('Failed to create conversation message:', result.error);
@@ -92,7 +132,12 @@ export class ConversationService {
       const result = await response.json();
       
       if (result.success && result.data) {
-        return result.data;
+        // Normalize MongoDB data format
+        const normalizedData = {
+          ...result.data,
+          _id: typeof result.data._id === 'string' ? result.data._id : result.data._id?.$oid || result.data._id
+        };
+        return normalizedData;
       }
       
       console.error('Failed to update conversation message:', result.error);

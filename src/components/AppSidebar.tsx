@@ -6,27 +6,35 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  useSidebar,
+  SidebarHeader,
 } from "@/components/ui/sidebar";
 
 export function AppSidebar() {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   
   const items = [
-    { title: t('home'), url: "/", icon: Home },
-    { title: t('contacts'), url: "/contacts", icon: Users },
+    { title: t('dashboard'), url: "/", icon: Home },
     { title: t('messages'), url: "/messages", icon: MessageSquare },
+    { title: t('contacts'), url: "/contacts", icon: Users },
   ];
 
   return (
-    <Sidebar collapsible="icon" side="right">
-      <SidebarContent>
+    <Sidebar collapsible="icon" side="left" className="border-r border-gray-200 bg-white">
+      <SidebarHeader className="border-b border-gray-200 p-4">
+        <div className="flex items-center gap-2">
+          <img 
+            src="/mubaye-icon.svg" 
+            alt="Mubayi" 
+            className="h-8 w-8"
+          />
+          <span className="font-bold text-lg text-gray-900">Mubayi</span>
+        </div>
+      </SidebarHeader>
+      <SidebarContent className="p-2">
         <SidebarGroup>
-          <SidebarGroupLabel>{t('mainMenu')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
@@ -36,12 +44,14 @@ export function AppSidebar() {
                       to={item.url}
                       end
                       className={({ isActive }) =>
-                        isActive
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                          : ""
+                        `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                          isActive
+                            ? "bg-blue-50 text-blue-600 font-medium"
+                            : "text-gray-700 hover:bg-blue-50"
+                        }`
                       }
                     >
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-5 w-5" />
                       <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>

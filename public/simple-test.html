@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple API Test</title>
+</head>
+<body>
+    <h1>Simple API Test</h1>
+    <button onclick="testHealth()">Test Health Endpoint</button>
+    <button onclick="testConversations()">Test Conversations</button>
+    <div id="results"></div>
+    
+    <script>
+        function log(message) {
+            const results = document.getElementById('results');
+            results.innerHTML += `<p>${new Date().toISOString()}: ${message}</p>`;
+            console.log(message);
+        }
+        
+        async function testHealth() {
+            log('Testing health endpoint...');
+            try {
+                const response = await fetch('http://localhost:3001/api/health');
+                log(`Response status: ${response.status}`);
+                const data = await response.json();
+                log(`Health data: ${JSON.stringify(data)}`);
+            } catch (error) {
+                log(`Health error: ${error.message}`);
+            }
+        }
+        
+        async function testConversations() {
+            log('Testing conversations endpoint...');
+            try {
+                const response = await fetch('http://localhost:3001/api/conversations');
+                log(`Response status: ${response.status}`);
+                const data = await response.json();
+                log(`Conversations data: ${JSON.stringify(data)}`);
+            } catch (error) {
+                log(`Conversations error: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -16,7 +16,12 @@ export const conversationKeys = {
 export function useConversations() {
   return useQuery({
     queryKey: conversationKeys.lists(),
-    queryFn: () => ConversationService.getAllConversations(),
+    queryFn: async () => {
+      console.log('🔄 useConversations: Starting fetch...');
+      const result = await ConversationService.getAllConversations();
+      console.log('✅ useConversations: Fetch completed, result:', result);
+      return result;
+    },
     staleTime: 1000 * 30, // 30 seconds
     refetchInterval: 1000 * 30, // Auto-refetch every 30 seconds
     refetchIntervalInBackground: true, // Continue refetching when tab is not active
@@ -27,7 +32,12 @@ export function useConversations() {
 export function useUniqueConversations() {
   return useQuery({
     queryKey: conversationKeys.list({ type: 'unique' }),
-    queryFn: () => ConversationService.getUniqueConversations(),
+    queryFn: async () => {
+      console.log('🔄 useUniqueConversations: Starting fetch...');
+      const result = await ConversationService.getUniqueConversations();
+      console.log('✅ useUniqueConversations: Fetch completed, result:', result);
+      return result;
+    },
     staleTime: 1000 * 30, // 30 seconds
     refetchInterval: 1000 * 30, // Auto-refetch every 30 seconds
     refetchIntervalInBackground: true, // Continue refetching when tab is not active

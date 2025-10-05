@@ -6,9 +6,22 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
+// Middleware - Permissive CORS configuration for development
+app.use(cors({
+  origin: true, // Allow all origins for development
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning', 'Accept', 'Origin', 'X-Requested-With']
+}));
 app.use(express.json());
+
+// Handle preflight requests
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, ngrok-skip-browser-warning, Accept, Origin, X-Requested-With');
+  res.sendStatus(200);
+});
 
 // MongoDB connection
 let db;
@@ -32,13 +45,17 @@ async function connectToMongoDB() {
 // Get all conversations
 app.get('/api/conversations', async (req, res) => {
   try {
+    console.log('🔍 Fetching all conversations from MongoDB...');
     const conversations = await conversationsCollection.find({}).toArray();
+    console.log('📊 Found', conversations.length, 'conversations');
+    console.log('📋 Sample conversation:', conversations[0] || 'No conversations found');
+    
     res.json({
       success: true,
       data: conversations
     });
   } catch (error) {
-    console.error('Error fetching conversations:', error);
+    console.error('❌ Error fetching conversations:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch conversations'
@@ -71,6 +88,7 @@ app.get('/api/conversations/group/:conversationId', async (req, res) => {
 // Get unique conversations (latest message from each conversation)
 app.get('/api/conversations/unique', async (req, res) => {
   try {
+    console.log('🔍 Fetching unique conversations from MongoDB...');
     const conversations = await conversationsCollection.aggregate([
       {
         $sort: { timestamp: -1 }
@@ -89,12 +107,15 @@ app.get('/api/conversations/unique', async (req, res) => {
       }
     ]).toArray();
     
+    console.log('📊 Found', conversations.length, 'unique conversations');
+    console.log('📋 Sample unique conversation:', conversations[0] || 'No unique conversations found');
+    
     res.json({
       success: true,
       data: conversations
     });
   } catch (error) {
-    console.error('Error fetching unique conversations:', error);
+    console.error('❌ Error fetching unique conversations:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to fetch unique conversations'
@@ -212,7 +233,7 @@ app.get('/api/health', (req, res) => {
 async function startServer() {
   await connectToMongoDB();
   
-  app.listen(PORT, () => {
+  app.listen(PORT, '127.0.0.1', () => {
     console.log(`Server running on http://localhost:${PORT}`);
     console.log('API endpoints available:');
     console.log('  GET /api/conversations - Get all conversations');

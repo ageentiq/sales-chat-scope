@@ -1,7 +1,5 @@
 export interface ConversationMessage {
-  _id: {
-    $oid: string;
-  };
+  _id: string | { $oid: string };
   conversation_id: string;
   inbound: string;
   outbound: string;
