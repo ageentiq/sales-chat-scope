@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUniqueConversations, useConversations } from "@/hooks/useConversations";
-import { MessageCircle, MessagesSquare, Users, TrendingUp, Clock, Activity } from "lucide-react";
+import { MessageCircle, MessagesSquare, Users, TrendingUp, Clock, Activity, Info } from "lucide-react";
 import { ConversationsChart } from "@/components/ConversationsChart";
 
 const Dashboard = () => {
@@ -18,9 +19,73 @@ const Dashboard = () => {
   const totalConversations = safeUniqueConversations.length;
   const totalMessages = safeAllConversations.length;
   
-  const avgMessagesPerConversation = totalConversations > 0 
-    ? (totalMessages / totalConversations).toFixed(1) 
-    : "0";
+  // Calculate Avg Messages per Conversation with trend analysis
+  const calculateAvgMessagesPerConversation = () => {
+    if (totalConversations === 0) {
+      return { avg: 0, avgFormatted: "0", trend: 0 };
+    }
+
+    const currentAvg = totalMessages / totalConversations;
+
+    // Calculate trend: compare last 7 days vs previous 7 days
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+    // Group messages and conversations by time period
+    const lastWeekMessages = safeAllConversations.filter(msg => {
+      const msgDate = new Date(msg.timestamp);
+      return msgDate >= sevenDaysAgo;
+    });
+
+    const lastWeekConversations = new Set(
+      lastWeekMessages.map(msg => msg.conversation_id)
+    );
+
+    const prevWeekMessages = safeAllConversations.filter(msg => {
+      const msgDate = new Date(msg.timestamp);
+      return msgDate >= fourteenDaysAgo && msgDate < sevenDaysAgo;
+    });
+
+    const prevWeekConversations = new Set(
+      prevWeekMessages.map(msg => msg.conversation_id)
+    );
+
+    const lastWeekAvg = lastWeekConversations.size > 0
+      ? lastWeekMessages.length / lastWeekConversations.size
+      : 0;
+
+    const prevWeekAvg = prevWeekConversations.size > 0
+      ? prevWeekMessages.length / prevWeekConversations.size
+      : 0;
+
+    // Calculate percentage change (positive means more engagement)
+    const trend = prevWeekAvg > 0
+      ? ((lastWeekAvg - prevWeekAvg) / prevWeekAvg) * 100
+      : 0;
+
+    return {
+      avg: currentAvg,
+      avgFormatted: currentAvg.toFixed(1),
+      trend,
+      lastWeekAvg,
+      prevWeekAvg
+    };
+  };
+
+  const {
+    avgFormatted: avgMessagesPerConversation,
+    trend: avgMessagesTrend,
+    lastWeekAvg: lastWeekMsgAvg,
+    prevWeekAvg: prevWeekMsgAvg
+  } = calculateAvgMessagesPerConversation();
+
+  const avgMessagesTrendFormatted = avgMessagesTrend !== 0
+    ? `${Math.abs(avgMessagesTrend).toFixed(1)}%`
+    : "0%";
+  const avgMessagesTrendIcon = avgMessagesTrend >= 0 ? '↑' : '↓';
+  const avgMessagesTrendColor = avgMessagesTrend >= 0 ? 'text-green-600' : 'text-red-600';
+  const avgMessagesTrendText = avgMessagesTrend >= 0 ? 'moreEngagement' : 'lessEngagement';
 
   const conversationsToday = safeUniqueConversations.filter(conv => {
     const today = new Date();
@@ -38,29 +103,196 @@ const Dashboard = () => {
     return convDate >= weekAgo;
   }).length;
 
-  // Calculate average response time (mock calculation based on conversation patterns)
-  const avgResponseTime = "2.5 min";
+  // Calculate average response time based on time between messages in a conversation
+  const calculateAvgResponseTime = () => {
+    const responseTimes: number[] = [];
+    
+    // Group messages by conversation_id
+    const conversationGroups: Record<string, typeof safeAllConversations> = {};
+    safeAllConversations.forEach(message => {
+      if (!conversationGroups[message.conversation_id]) {
+        conversationGroups[message.conversation_id] = [];
+      }
+      conversationGroups[message.conversation_id].push(message);
+    });
+
+    // For each conversation, calculate response times between consecutive messages
+    Object.values(conversationGroups).forEach(messages => {
+      // Sort messages by timestamp
+      const sortedMessages = messages.sort((a, b) => 
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
+
+      // Calculate time between consecutive messages
+      for (let i = 0; i < sortedMessages.length - 1; i++) {
+        const currentMsg = sortedMessages[i];
+        const nextMsg = sortedMessages[i + 1];
+        
+        const timeDiff = new Date(nextMsg.timestamp).getTime() - new Date(currentMsg.timestamp).getTime();
+        const minutesDiff = timeDiff / (1000 * 60); // Convert to minutes
+        
+        // Only include reasonable response times (> 0 and < 24 hours)
+        if (minutesDiff > 0 && minutesDiff < 1440) {
+          responseTimes.push(minutesDiff);
+        }
+      }
+    });
+
+    if (responseTimes.length === 0) {
+      return { avgTime: 0, avgTimeFormatted: "0 min", trend: 0 };
+    }
+
+    const avgMinutes = responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length;
+
+    // Format the time
+    let avgTimeFormatted: string;
+    if (avgMinutes < 1) {
+      avgTimeFormatted = `${Math.round(avgMinutes * 60)} sec`;
+    } else if (avgMinutes < 60) {
+      avgTimeFormatted = `${avgMinutes.toFixed(1)} min`;
+    } else {
+      const hours = Math.floor(avgMinutes / 60);
+      const mins = Math.round(avgMinutes % 60);
+      avgTimeFormatted = `${hours}h ${mins}m`;
+    }
+
+    // Calculate trend: compare last 7 days vs previous 7 days
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+    const lastWeekTimes: number[] = [];
+    const prevWeekTimes: number[] = [];
+
+    Object.values(conversationGroups).forEach(messages => {
+      const sortedMessages = messages.sort((a, b) => 
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
+
+      for (let i = 0; i < sortedMessages.length - 1; i++) {
+        const currentMsg = sortedMessages[i];
+        const nextMsg = sortedMessages[i + 1];
+        const msgDate = new Date(nextMsg.timestamp);
+        
+        const timeDiff = new Date(nextMsg.timestamp).getTime() - new Date(currentMsg.timestamp).getTime();
+        const minutesDiff = timeDiff / (1000 * 60);
+        
+        if (minutesDiff > 0 && minutesDiff < 1440) {
+          if (msgDate >= sevenDaysAgo) {
+            lastWeekTimes.push(minutesDiff);
+          } else if (msgDate >= fourteenDaysAgo && msgDate < sevenDaysAgo) {
+            prevWeekTimes.push(minutesDiff);
+          }
+        }
+      }
+    });
+
+    const lastWeekAvg = lastWeekTimes.length > 0 
+      ? lastWeekTimes.reduce((sum, time) => sum + time, 0) / lastWeekTimes.length 
+      : 0;
+    
+    const prevWeekAvg = prevWeekTimes.length > 0 
+      ? prevWeekTimes.reduce((sum, time) => sum + time, 0) / prevWeekTimes.length 
+      : 0;
+
+    // Calculate percentage change (negative means faster/better)
+    const trend = prevWeekAvg > 0 
+      ? ((lastWeekAvg - prevWeekAvg) / prevWeekAvg) * 100 
+      : 0;
+
+    return { avgTime: avgMinutes, avgTimeFormatted, trend };
+  };
+
+  const { avgTimeFormatted: avgResponseTime, trend: avgResponseTimeTrend } = calculateAvgResponseTime();
+  const avgResponseTimeTrendFormatted = avgResponseTimeTrend !== 0
+    ? `${Math.abs(avgResponseTimeTrend).toFixed(1)}%`
+    : "0%";
+  const avgResponseTimeTrendIcon = avgResponseTimeTrend <= 0 ? '↓' : '↑';
+  const avgResponseTimeTrendColor = avgResponseTimeTrend <= 0 ? 'text-green-600' : 'text-red-600';
+  const avgResponseTimeTrendText = avgResponseTimeTrend <= 0 ? 'fasterThanLastWeek' : 'slowerThanLastWeek';
   
-  const responseRate = "95%"; // Mock data
+  // Calculate Response Rate: percentage of conversations that received at least one response
+  const calculateResponseRate = () => {
+    if (totalConversations === 0) return { rate: 0, trend: 0 };
+
+    // Count conversations with at least one non-empty outbound message
+    const conversationsWithResponses = new Set<string>();
+    safeAllConversations.forEach(message => {
+      if (message.outbound && message.outbound.trim() !== '') {
+        conversationsWithResponses.add(message.conversation_id);
+      }
+    });
+
+    const currentRate = (conversationsWithResponses.size / totalConversations) * 100;
+
+    // Calculate trend: compare last 7 days to previous 7 days
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+    // Last 7 days
+    const lastWeekConversations = new Set<string>();
+    const lastWeekResponses = new Set<string>();
+    
+    // Previous 7 days (8-14 days ago)
+    const prevWeekConversations = new Set<string>();
+    const prevWeekResponses = new Set<string>();
+
+    safeAllConversations.forEach(message => {
+      const msgDate = new Date(message.timestamp);
+      
+      if (msgDate >= sevenDaysAgo) {
+        lastWeekConversations.add(message.conversation_id);
+        if (message.outbound && message.outbound.trim() !== '') {
+          lastWeekResponses.add(message.conversation_id);
+        }
+      } else if (msgDate >= fourteenDaysAgo && msgDate < sevenDaysAgo) {
+        prevWeekConversations.add(message.conversation_id);
+        if (message.outbound && message.outbound.trim() !== '') {
+          prevWeekResponses.add(message.conversation_id);
+        }
+      }
+    });
+
+    const lastWeekRate = lastWeekConversations.size > 0 
+      ? (lastWeekResponses.size / lastWeekConversations.size) * 100 
+      : 0;
+    
+    const prevWeekRate = prevWeekConversations.size > 0 
+      ? (prevWeekResponses.size / prevWeekConversations.size) * 100 
+      : 0;
+
+    const trend = prevWeekRate > 0 ? lastWeekRate - prevWeekRate : 0;
+
+    return { rate: currentRate, trend };
+  };
+
+  const { rate: responseRateValue, trend: responseRateTrend } = calculateResponseRate();
+  const responseRate = `${responseRateValue.toFixed(0)}%`;
+  const responseRateTrendFormatted = responseRateTrend >= 0 
+    ? `↑ ${Math.abs(responseRateTrend).toFixed(1)}%`
+    : `↓ ${Math.abs(responseRateTrend).toFixed(1)}%`;
+  const responseRateTrendColor = responseRateTrend >= 0 ? 'text-green-600' : 'text-red-600';
 
   if (isLoadingAll) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
-          <h2 className="text-xl font-semibold mb-2">Loading Dashboard...</h2>
-          <p className="text-gray-600">Fetching data...</p>
+          <h2 className="text-xl font-semibold mb-2">{t('loadingDashboard')}</h2>
+          <p className="text-gray-600">{t('fetchingData')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="px-8 py-6">
-          <div>
+    <TooltipProvider>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <header className="bg-white border-b border-gray-200">
+          <div className="px-8 py-6">
+            <div>
             <h1 className="text-3xl font-bold text-gray-900">{t('salesDashboard')}</h1>
             <p className="text-gray-600 mt-1">{t('trackAndAnalyze')}</p>
           </div>
@@ -73,7 +305,17 @@ const Dashboard = () => {
           {/* Total Conversations Card */}
           <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">{t('totalConversations')}</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm font-medium text-gray-600">{t('totalConversations')}</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{t('totalConversationsTooltip')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <Users className="h-5 w-5 text-gray-400" />
             </CardHeader>
             <CardContent>
@@ -84,7 +326,17 @@ const Dashboard = () => {
           {/* Total Messages Card */}
           <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">{t('totalMessages')}</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm font-medium text-gray-600">{t('totalMessages')}</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{t('totalMessagesTooltip')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <MessagesSquare className="h-5 w-5 text-gray-400" />
             </CardHeader>
             <CardContent>
@@ -95,18 +347,48 @@ const Dashboard = () => {
           {/* Avg Messages per Conversation Card */}
           <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Avg Messages/Conversation</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm font-medium text-gray-600">{t('avgMessagesPerConversation')}</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{t('avgMessagesPerConversationTooltip')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <MessageCircle className="h-5 w-5 text-gray-400" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-900">{avgMessagesPerConversation}</div>
+              {avgMessagesTrend !== 0 && (
+                <p className={`text-xs ${avgMessagesTrendColor} mt-1`}>
+                  {avgMessagesTrendIcon} {avgMessagesTrendFormatted} {t(avgMessagesTrendText)}
+                </p>
+              )}
+              {lastWeekMsgAvg > 0 && prevWeekMsgAvg > 0 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {t('lastWeek')}: {lastWeekMsgAvg.toFixed(1)} | {t('prevWeek')}: {prevWeekMsgAvg.toFixed(1)}
+                </p>
+              )}
             </CardContent>
           </Card>
 
           {/* Conversations Today Card */}
           <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Conversations Today</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm font-medium text-gray-600">{t('conversationsToday')}</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{t('conversationsTodayTooltip')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <TrendingUp className="h-5 w-5 text-gray-400" />
             </CardHeader>
             <CardContent>
@@ -120,13 +402,23 @@ const Dashboard = () => {
           {/* Active Conversations (Last 7 Days) */}
           <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Active (Last 7 Days)</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm font-medium text-gray-600">{t('activeLastSevenDays')}</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{t('activeLastSevenDaysTooltip')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <Activity className="h-5 w-5 text-gray-400" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-900">{activeConversations}</div>
               <p className="text-xs text-gray-500 mt-1">
-                {((activeConversations / totalConversations) * 100).toFixed(0)}% of total
+                {((activeConversations / totalConversations) * 100).toFixed(0)}% {t('ofTotal')}
               </p>
             </CardContent>
           </Card>
@@ -134,24 +426,50 @@ const Dashboard = () => {
           {/* Average Response Time */}
           <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Avg Response Time</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm font-medium text-gray-600">{t('avgResponseTimeFull')}</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{t('avgResponseTimeTooltip')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <Clock className="h-5 w-5 text-gray-400" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-900">{avgResponseTime}</div>
-              <p className="text-xs text-green-600 mt-1">↓ 15% faster than last week</p>
+              {avgResponseTimeTrend !== 0 && (
+                <p className={`text-xs ${avgResponseTimeTrendColor} mt-1`}>
+                  {avgResponseTimeTrendIcon} {avgResponseTimeTrendFormatted} {t(avgResponseTimeTrendText)}
+                </p>
+              )}
             </CardContent>
           </Card>
 
           {/* Response Rate */}
           <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Response Rate</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm font-medium text-gray-600">{t('responseRate')}</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{t('responseRateTooltip')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <TrendingUp className="h-5 w-5 text-gray-400" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-gray-900">{responseRate}</div>
-              <p className="text-xs text-green-600 mt-1">↑ 3% from last week</p>
+              <p className={`text-xs ${responseRateTrendColor} mt-1`}>
+                {responseRateTrendFormatted} {t('fromLastWeekUp')}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -161,7 +479,8 @@ const Dashboard = () => {
           <ConversationsChart />
         </div>
       </main>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 };
 

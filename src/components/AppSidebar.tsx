@@ -10,10 +10,12 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarHeader,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 export function AppSidebar() {
   const { t } = useLanguage();
+  const { state } = useSidebar();
   
   const items = [
     { title: t('dashboard'), url: "/", icon: Home },
@@ -28,9 +30,11 @@ export function AppSidebar() {
           <img 
             src="/mubaye-icon.svg" 
             alt="Mubayi" 
-            className="h-8 w-8"
+            className={`h-8 w-8 transition-all duration-300 ${state === 'collapsed' ? 'mx-auto' : ''}`}
           />
-          <span className="font-bold text-lg text-gray-900">Mubayi</span>
+          {state === 'expanded' && (
+            <span className="font-bold text-lg text-gray-900">Mubayi</span>
+          )}
         </div>
       </SidebarHeader>
       <SidebarContent className="p-2">
