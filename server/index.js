@@ -79,6 +79,45 @@ app.get('/api/conversations', async (req, res) => {
   }
 });
 
+// Get unique conversations (latest message from each conversation)
+// NOTE: This MUST come before /group/:conversationId to avoid route conflict
+app.get('/api/conversations/unique', async (req, res) => {
+  try {
+    console.log('🔍 Fetching unique conversations from MongoDB...');
+    const conversations = await conversationsCollection.aggregate([
+      {
+        $sort: { timestamp: -1 }
+      },
+      {
+        $group: {
+          _id: '$conversation_id',
+          latestMessage: { $first: '$$ROOT' }
+        }
+      },
+      {
+        $replaceRoot: { newRoot: '$latestMessage' }
+      },
+      {
+        $sort: { timestamp: -1 }
+      }
+    ]).toArray();
+    
+    console.log('📊 Found', conversations.length, 'unique conversations');
+    console.log('📋 Sample unique conversation:', conversations[0] || 'No unique conversations found');
+    
+    res.json({
+      success: true,
+      data: conversations
+    });
+  } catch (error) {
+    console.error('❌ Error fetching unique conversations:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch unique conversations'
+    });
+  }
+});
+
 // Get conversations by conversation ID
 app.get('/api/conversations/group/:conversationId', async (req, res) => {
   try {
@@ -139,44 +178,6 @@ app.get('/api/conversations/group/:conversationId', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch conversations'
-    });
-  }
-});
-
-// Get unique conversations (latest message from each conversation)
-app.get('/api/conversations/unique', async (req, res) => {
-  try {
-    console.log('🔍 Fetching unique conversations from MongoDB...');
-    const conversations = await conversationsCollection.aggregate([
-      {
-        $sort: { timestamp: -1 }
-      },
-      {
-        $group: {
-          _id: '$conversation_id',
-          latestMessage: { $first: '$$ROOT' }
-        }
-      },
-      {
-        $replaceRoot: { newRoot: '$latestMessage' }
-      },
-      {
-        $sort: { timestamp: -1 }
-      }
-    ]).toArray();
-    
-    console.log('📊 Found', conversations.length, 'unique conversations');
-    console.log('📋 Sample unique conversation:', conversations[0] || 'No unique conversations found');
-    
-    res.json({
-      success: true,
-      data: conversations
-    });
-  } catch (error) {
-    console.error('❌ Error fetching unique conversations:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch unique conversations'
     });
   }
 });
