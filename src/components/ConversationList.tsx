@@ -113,7 +113,11 @@ export const ConversationList = ({
               {filteredConversations.map((conversation, index) => (
                 <div
                   key={conversation.conversation_id}
-                  onClick={() => onConversationSelect(conversation.conversation_id)}
+                  onClick={() => {
+                    console.log('🖱️ [ConversationList] Conversation clicked:', conversation.conversation_id);
+                    console.log('📋 [ConversationList] Full conversation object:', conversation);
+                    onConversationSelect(conversation.conversation_id);
+                  }}
                   style={{ animationDelay: `${index * 50}ms` }}
                   className={`group relative p-5 cursor-pointer transition-all duration-300 hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent animate-in fade-in slide-in-from-left-4 ${
                     selectedConversationId === conversation.conversation_id 

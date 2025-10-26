@@ -38,22 +38,35 @@ export class ConversationService {
 
   static async getConversationsByGroupId(conversationId: string): Promise<ConversationMessage[]> {
     try {
+      console.log('🔍 [ConversationService] Fetching messages for conversation:', conversationId);
+      console.log('🔗 [ConversationService] URL:', `${API_BASE_URL}/conversations/group/${conversationId}`);
+      
       const response = await fetch(`${API_BASE_URL}/conversations/group/${conversationId}`);
+      console.log('📡 [ConversationService] Response status:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        console.error('❌ [ConversationService] HTTP error!', response.status, response.statusText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const result = await response.json();
+      console.log('📊 [ConversationService] API Response for conversation:', conversationId, result);
       
       if (result.success && result.data) {
+        console.log('✅ [ConversationService] Successfully fetched', result.data.length, 'messages');
         // Normalize MongoDB data format
         const normalizedData = result.data.map((item: any) => ({
           ...item,
           _id: typeof item._id === 'string' ? item._id : item._id?.$oid || item._id
         }));
+        console.log('🔄 [ConversationService] Normalized messages:', normalizedData);
         return normalizedData;
       }
       
-      console.error('Failed to fetch conversations by group ID:', result.error);
+      console.error('❌ [ConversationService] Failed to fetch conversations by group ID:', result.error);
       return [];
     } catch (error) {
-      console.error('Error fetching conversations by group ID:', error);
+      console.error('💥 [ConversationService] Error fetching conversations by group ID:', error);
       return [];
     }
   }

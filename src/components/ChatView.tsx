@@ -26,7 +26,9 @@ const MessageSkeleton = ({ align = "left" }: { align?: "left" | "right" }) => (
 
 export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const { t, language } = useLanguage();
+  console.log('👀 [ChatView] Rendering with conversationId:', conversationId);
   const { data: messages = [], isLoading } = useConversationsByGroupId(conversationId);
+  console.log('📨 [ChatView] Messages received:', messages.length, 'messages');
 
   const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
