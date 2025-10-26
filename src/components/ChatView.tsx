@@ -2,8 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, MessageSquare, User, Bot, Calendar, Hash } from "lucide-react";
-import { useConversationsByGroupId } from "@/hooks/useConversations";
+import { ArrowLeft, MessageSquare, User, Bot, Calendar, Hash, TrendingUp, FileText, ArrowRightLeft } from "lucide-react";
+import { useConversationsByGroupId, useAnalysisByConversationId } from "@/hooks/useConversations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getObjectIdString } from "@/lib/utils";
 
@@ -28,7 +28,9 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const { t, language } = useLanguage();
   console.log('👀 [ChatView] Rendering with conversationId:', conversationId);
   const { data: messages = [], isLoading } = useConversationsByGroupId(conversationId);
+  const { data: analysis, isLoading: isLoadingAnalysis } = useAnalysisByConversationId(conversationId);
   console.log('📨 [ChatView] Messages received:', messages.length, 'messages');
+  console.log('📊 [ChatView] Analysis received:', analysis);
 
   const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
@@ -153,6 +155,70 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('noMessagesYet')}</h3>
                 <p className="text-gray-500 text-sm">{t('noMessagesFound')}</p>
+              </div>
+            </div>
+          )}
+          
+          {/* Customer Analysis Section */}
+          {!isLoading && messages.length > 0 && (
+            <div className="mt-8 pt-8 border-t-2 border-gray-200">
+              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 shadow-md border border-indigo-100">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 rounded-lg bg-indigo-600 shadow-md">
+                    <TrendingUp className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">Customer Insights</h3>
+                </div>
+                
+                {isLoadingAnalysis ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-24 w-full rounded-lg" />
+                    <Skeleton className="h-24 w-full rounded-lg" />
+                    <Skeleton className="h-24 w-full rounded-lg" />
+                  </div>
+                ) : analysis ? (
+                  <div className="space-y-4">
+                    {/* Summary */}
+                    {analysis.summary && (
+                      <div className="bg-white rounded-xl p-5 shadow-sm border border-indigo-100">
+                        <div className="flex items-center gap-2 mb-3">
+                          <FileText className="h-4 w-4 text-indigo-600" />
+                          <h4 className="font-semibold text-gray-900">Summary</h4>
+                        </div>
+                        <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{analysis.summary}</p>
+                      </div>
+                    )}
+                    
+                    {/* Analysis */}
+                    {analysis.analysis && (
+                      <div className="bg-white rounded-xl p-5 shadow-sm border border-indigo-100">
+                        <div className="flex items-center gap-2 mb-3">
+                          <TrendingUp className="h-4 w-4 text-indigo-600" />
+                          <h4 className="font-semibold text-gray-900">Analysis</h4>
+                        </div>
+                        <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{analysis.analysis}</p>
+                      </div>
+                    )}
+                    
+                    {/* Transition */}
+                    {analysis.transition && (
+                      <div className="bg-white rounded-xl p-5 shadow-sm border border-indigo-100">
+                        <div className="flex items-center gap-2 mb-3">
+                          <ArrowRightLeft className="h-4 w-4 text-indigo-600" />
+                          <h4 className="font-semibold text-gray-900">Transition</h4>
+                        </div>
+                        <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{analysis.transition}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 mb-3">
+                      <TrendingUp className="h-8 w-8 text-indigo-400" />
+                    </div>
+                    <p className="text-gray-600 text-sm">No analysis available for this conversation</p>
+                  </div>
+                )}
               </div>
             </div>
           )}

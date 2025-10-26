@@ -111,3 +111,13 @@ export function useDeleteConversationMessage() {
 export function useDataMode() {
   return ConversationService.getDataMode();
 }
+
+// Get analysis by conversation ID
+export function useAnalysisByConversationId(conversationId: string) {
+  return useQuery({
+    queryKey: [...conversationKeys.all, 'analysis', conversationId],
+    queryFn: () => ConversationService.getAnalysisByConversationId(conversationId),
+    enabled: !!conversationId,
+    staleTime: 1000 * 60 * 5, // 5 minutes - analysis data changes less frequently
+  });
+}

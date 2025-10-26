@@ -184,4 +184,36 @@ export class ConversationService {
   static getDataMode(): 'mock' | 'mongodb' {
     return 'mongodb';
   }
+
+  static async getAnalysisByConversationId(conversationId: string): Promise<{
+    conversation_id: string;
+    summary: string;
+    analysis: string;
+    transition: string;
+  } | null> {
+    try {
+      console.log('🔍 [ConversationService] Fetching analysis for conversation:', conversationId);
+      
+      const response = await fetch(`${API_BASE_URL}/analysis/${conversationId}`);
+      console.log('📡 [ConversationService] Analysis response status:', response.status);
+      
+      if (!response.ok) {
+        console.error('❌ [ConversationService] HTTP error!', response.status);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('📊 [ConversationService] Analysis response:', result);
+      
+      if (result.success) {
+        return result.data;
+      }
+      
+      console.error('❌ [ConversationService] Failed to fetch analysis:', result.error);
+      return null;
+    } catch (error) {
+      console.error('💥 [ConversationService] Error fetching analysis:', error);
+      return null;
+    }
+  }
 }
