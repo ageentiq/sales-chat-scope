@@ -6,9 +6,22 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware - Permissive CORS configuration for development
+// Middleware - CORS configuration
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',') 
+  : ['http://localhost:5173', 'http://localhost:3000'];
+
 app.use(cors({
-  origin: true, // Allow all origins for development
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning', 'Accept', 'Origin', 'X-Requested-With']
@@ -329,8 +342,12 @@ app.get('/api/health', (req, res) => {
 async function startServer() {
   await connectToMongoDB();
   
-  app.listen(PORT, '127.0.0.1', () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1';
+  
+  app.listen(PORT, HOST, () => {
+    console.log(`Server running on http://${HOST}:${PORT}`);
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('Allowed Origins:', allowedOrigins);
     console.log('API endpoints available:');
     console.log('  GET /api/conversations - Get all conversations');
     console.log('  GET /api/conversations/unique - Get unique conversations');
