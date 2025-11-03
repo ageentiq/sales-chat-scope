@@ -16,6 +16,9 @@ interface AuthContextType {
   error: string | null;
 }
 
+// API base URL - uses environment variable in production, falls back to proxy in development
+const API_URL = import.meta.env.VITE_API_URL || '/api';
+
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -30,7 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          const response = await axios.get('/api/auth/me', {
+          const response = await axios.get(`${API_URL}/auth/me`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           setUser(response.data.user);
@@ -49,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       setError(null);
-      const response = await axios.post('/api/auth/login', { email, password });
+      const response = await axios.post(`${API_URL}/auth/login`, { email, password });
       const { token, user } = response.data;
       localStorage.setItem('token', token);
       setUser(user);
@@ -63,7 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (email: string, password: string) => {
     try {
       setError(null);
-      const response = await axios.post('/api/auth/register', { email, password });
+      const response = await axios.post(`${API_URL}/auth/register`, { email, password });
       const { token, user } = response.data;
       localStorage.setItem('token', token);
       setUser(user);
