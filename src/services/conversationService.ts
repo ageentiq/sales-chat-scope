@@ -1,7 +1,7 @@
 import { ConversationMessage } from '@/data/mockData';
 
 // Configuration for API calls
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://sales-chat-api.onrender.com/api';
 
 export class ConversationService {
   static async getAllConversations(): Promise<ConversationMessage[]> {
