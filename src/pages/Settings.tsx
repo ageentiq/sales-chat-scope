@@ -6,9 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { LogOut } from 'lucide-react';
+import { LogOut, AlertCircle } from 'lucide-react';
 
 export default function Settings() {
   const { user, logout } = useAuth();
@@ -123,6 +124,17 @@ export default function Settings() {
       <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('settings')}</h1>
       
       <div className="space-y-6">
+        {/* Pending Email Change Alert */}
+        {user?.new_email && (
+          <Alert className="border-blue-500 bg-blue-50">
+            <AlertCircle className="h-4 w-4 text-blue-600" />
+            <AlertTitle className="text-blue-900">{t('pendingEmailChange')}</AlertTitle>
+            <AlertDescription className="text-blue-800">
+              {t('pendingEmailChangeDescription').replace('{email}', user.new_email)}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Current Email Display */}
         <Card>
           <CardHeader>
