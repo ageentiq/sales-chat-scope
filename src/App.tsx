@@ -2,70 +2,98 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./components/AppSidebar";
 import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Languages } from "lucide-react";
 import Dashboard from "./pages/Dashboard";
 import Contacts from "./pages/Contacts";
 import Messages from "./pages/Messages";
+import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
-function AppContent() {
+function AppLayout() {
   const { language, toggleLanguage } = useLanguage();
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
-    <BrowserRouter>
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-gray-50">
-          <AppSidebar />
-          <main className="flex-1 flex flex-col w-0 min-w-0">
-            {/* Top Navigation Bar */}
-            <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
-              <div className="flex h-16 items-center justify-between px-6">
-                <div className="flex items-center gap-3">
-                  <SidebarTrigger className="text-gray-600 hover:text-gray-900" />
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={toggleLanguage}
-                  className="gap-2 border-gray-300 hover:bg-gray-50"
-                  aria-label="Toggle language"
-                >
-                  <Languages className="h-4 w-4" />
-                  <span className="text-sm font-medium">{language === 'ar' ? 'English' : 'عربي'}</span>
-                </Button>
-              </div>
-            </header>
-            <div className="flex-1 overflow-auto">
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/contacts" element={<Contacts />} />
-                <Route path="/messages" element={<Messages />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+    <div className="flex min-h-screen w-full bg-gray-50">
+      <AppSidebar />
+      <main className="flex-1 flex flex-col w-0 min-w-0">
+        <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
+          <div className="flex h-16 items-center justify-between px-6">
+            <div className="flex items-center gap-3">
+              <SidebarTrigger className="text-gray-600 hover:text-gray-900" />
             </div>
-          </main>
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleLanguage}
+                className="gap-2 border-gray-300 hover:bg-gray-50"
+                aria-label="Toggle language"
+              >
+                <Languages className="h-4 w-4" />
+                <span className="text-sm font-medium">{language === 'ar' ? 'English' : 'عربي'}</span>
+              </Button>
+            </div>
+          </div>
+        </header>
+        <div className="flex-1 overflow-auto">
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/contacts" element={<Contacts />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </div>
-      </SidebarProvider>
+      </main>
+    </div>
+  );
+}
+
+function AppContent() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <LanguageProvider>
+          <SidebarProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route
+                path="/*"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </SidebarProvider>
+        </LanguageProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <LanguageProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <AppContent />
-      </TooltipProvider>
-    </LanguageProvider>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <AppContent />
+    </TooltipProvider>
   </QueryClientProvider>
 );
 

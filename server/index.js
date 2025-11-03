@@ -2,31 +2,51 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient, ObjectId } = require('mongodb');
 require('dotenv').config();
+const authRoutes = require('./routes/auth');
+const auth = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware - CORS configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',') 
-  : ['http://localhost:5173', 'http://localhost:3000'];
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:8080'];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
     }
+    
+    return callback(null, true);
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning', 'Accept', 'Origin', 'X-Requested-With']
-}));
-app.use(express.json());
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Access-Control-Allow-Credentials',
+    'ngrok-skip-browser-warning'
+  ],
+  exposedHeaders: [
+    'Content-Length',
+    'Authorization',
+    'Access-Control-Allow-Origin',
+    'Access-Control-Allow-Credentials'
+  ],
+  maxAge: 86400 // 24 hours
+};
+
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '50mb' }));
 
 // Handle preflight requests
 app.options('*', (req, res) => {
@@ -38,25 +58,61 @@ app.options('*', (req, res) => {
 
 // MongoDB connection
 let db;
+let client;
 let conversationsCollection;
 let analysisCollection;
 
 async function connectToMongoDB() {
   try {
-    const client = new MongoClient(process.env.MONGODB_URI);
+    client = new MongoClient(process.env.MONGODB_URI);
     await client.connect();
     db = client.db(process.env.MONGODB_DATABASE || 'Osus');
-    conversationsCollection = db.collection(process.env.MONGODB_CONVERSATIONS_COLLECTION || 'converation_history');
+    conversationsCollection = db.collection(process.env.MONGODB_CONVERSATIONS_COLLECTION || 'conversation_history');
     analysisCollection = db.collection(process.env.MONGODB_ANALYSIS_COLLECTION || 'analysis');
+    
+    // Initialize collections
+    await db.collection('users').createIndex({ email: 1 }, { unique: true });
+    
     console.log('Connected to MongoDB Atlas');
-    console.log('Collections loaded: conversations, analysis');
+    console.log('Collections loaded: conversations, analysis, users');
+    
+    return { db, client };
   } catch (error) {
     console.error('Failed to connect to MongoDB:', error);
     process.exit(1);
   }
 }
 
-// API Routes
+// Initialize database and start server
+async function initializeApp() {
+  try {
+    // Connect to MongoDB
+    const { db: connectedDb } = await connectToMongoDB();
+    
+    // API Routes - Initialize after DB connection
+    app.use('/api/auth', authRoutes(connectedDb));
+    app.use('/api/protected', auth(connectedDb));
+    
+    return connectedDb;
+  } catch (error) {
+    console.error('Failed to initialize application:', error);
+    process.exit(1);
+  }
+}
+
+// Initialize the application
+let appInitialized = initializeApp();
+
+// Example protected route
+app.get('/api/protected/user', (req, res) => {
+  res.json({ 
+    success: true, 
+    user: req.user,
+    message: 'This is a protected route' 
+  });
+});
+
+// Public Routes
 
 // Get all conversations
 app.get('/api/conversations', async (req, res) => {
@@ -341,23 +397,57 @@ app.get('/api/health', (req, res) => {
 
 // Start server
 async function startServer() {
-  await connectToMongoDB();
-  
-  const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1';
-  
-  app.listen(PORT, HOST, () => {
-    console.log(`Server running on http://${HOST}:${PORT}`);
-    console.log('Environment:', process.env.NODE_ENV);
-    console.log('Allowed Origins:', allowedOrigins);
-    console.log('API endpoints available:');
-    console.log('  GET /api/conversations - Get all conversations');
-    console.log('  GET /api/conversations/unique - Get unique conversations');
-    console.log('  GET /api/conversations/group/:id - Get conversations by group ID');
-    console.log('  GET /api/analysis/:conversationId - Get analysis for conversation');
-    console.log('  POST /api/conversations - Create new conversation');
-    console.log('  PUT /api/conversations/:id - Update conversation');
-    console.log('  DELETE /api/conversations/:id - Delete conversation');
+  try {
+    await appInitialized;
+    
+    const server = app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+      console.log(`API Documentation: http://localhost:${PORT}/api-docs`);
+      console.log('  PUT /api/conversations/:id - Update conversation');
+      console.log('  DELETE /api/conversations/:id - Delete conversation');
+    });
+
+    // Handle graceful shutdown
+    const gracefulShutdown = async () => {
+      console.log('Shutting down server...');
+      
+      // Close the server
+      server.close(async () => {
+        console.log('HTTP server closed');
+        
+        // Close MongoDB connection if it exists
+        if (client) {
+          await client.close();
+          console.log('MongoDB connection closed');
+        }
+        
+        console.log('Process terminated');
+        process.exit(0);
+      });
+    };
+
+    // Handle different shutdown signals
+    process.on('SIGTERM', gracefulShutdown);
+    process.on('SIGINT', gracefulShutdown);
+    
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+// Only start the server if this file is run directly
+if (require.main === module) {
+  startServer().catch(error => {
+    console.error('Unhandled error in server startup:', error);
+    process.exit(1);
   });
 }
 
-startServer().catch(console.error);
+// Export for testing
+module.exports = { 
+  app, 
+  initializeApp, 
+  connectToMongoDB,
+  startServer
+};
