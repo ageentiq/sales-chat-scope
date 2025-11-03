@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,17 +8,36 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { LogOut } from 'lucide-react';
 
 export default function Settings() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+      toast({
+        title: 'Logged out',
+        description: 'You have been successfully logged out',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to logout',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,6 +201,26 @@ export default function Settings() {
                 {isUpdatingPassword ? 'Updating...' : 'Update Password'}
               </Button>
             </form>
+          </CardContent>
+        </Card>
+
+        {/* Logout Section */}
+        <Card className="border-destructive/50">
+          <CardHeader>
+            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            <CardDescription>
+              Log out of your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              variant="destructive" 
+              onClick={handleLogout}
+              className="gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Log Out
+            </Button>
           </CardContent>
         </Card>
       </div>
