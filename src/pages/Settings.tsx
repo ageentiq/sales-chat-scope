@@ -27,13 +27,13 @@ export default function Settings() {
       await logout();
       navigate('/login');
       toast({
-        title: 'Logged out',
-        description: 'You have been successfully logged out',
+        title: t('loggedOut'),
+        description: t('loggedOutSuccessfully'),
       });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to logout',
+        title: t('error'),
+        description: t('failedToLogout'),
         variant: 'destructive',
       });
     }
@@ -44,8 +44,8 @@ export default function Settings() {
     
     if (!newEmail || !newEmail.includes('@')) {
       toast({
-        title: 'Error',
-        description: 'Please enter a valid email address',
+        title: t('error'),
+        description: t('validEmailRequired'),
         variant: 'destructive',
       });
       return;
@@ -58,14 +58,14 @@ export default function Settings() {
       if (error) throw error;
       
       toast({
-        title: 'Success',
-        description: 'A confirmation email has been sent to your new email address',
+        title: t('success'),
+        description: t('emailConfirmationSent'),
       });
       setNewEmail('');
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update email',
+        title: t('error'),
+        description: error.message || t('failedToUpdateEmail'),
         variant: 'destructive',
       });
     } finally {
@@ -78,8 +78,8 @@ export default function Settings() {
     
     if (!newPassword || newPassword.length < 6) {
       toast({
-        title: 'Error',
-        description: 'Password must be at least 6 characters',
+        title: t('error'),
+        description: t('passwordMinLength'),
         variant: 'destructive',
       });
       return;
@@ -87,8 +87,8 @@ export default function Settings() {
 
     if (newPassword !== confirmPassword) {
       toast({
-        title: 'Error',
-        description: 'Passwords do not match',
+        title: t('error'),
+        description: t('passwordsDoNotMatch'),
         variant: 'destructive',
       });
       return;
@@ -101,16 +101,16 @@ export default function Settings() {
       if (error) throw error;
       
       toast({
-        title: 'Success',
-        description: 'Password updated successfully',
+        title: t('success'),
+        description: t('passwordUpdatedSuccessfully'),
       });
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update password',
+        title: t('error'),
+        description: error.message || t('failedToUpdatePassword'),
         variant: 'destructive',
       });
     } finally {
@@ -120,18 +120,18 @@ export default function Settings() {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Settings</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('settings')}</h1>
       
       <div className="space-y-6">
         {/* Current Email Display */}
         <Card>
           <CardHeader>
-            <CardTitle>Account Information</CardTitle>
-            <CardDescription>Your current account details</CardDescription>
+            <CardTitle>{t('accountInformation')}</CardTitle>
+            <CardDescription>{t('currentAccountDetails')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Label>Current Email</Label>
+              <Label>{t('currentEmail')}</Label>
               <Input value={user?.email || ''} disabled className="bg-gray-50" />
             </div>
           </CardContent>
@@ -140,26 +140,26 @@ export default function Settings() {
         {/* Update Email */}
         <Card>
           <CardHeader>
-            <CardTitle>Update Email</CardTitle>
+            <CardTitle>{t('updateEmail')}</CardTitle>
             <CardDescription>
-              Change your email address. You'll need to verify your new email.
+              {t('updateEmailDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleUpdateEmail} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="new-email">New Email Address</Label>
+                <Label htmlFor="new-email">{t('newEmailAddress')}</Label>
                 <Input
                   id="new-email"
                   type="email"
-                  placeholder="Enter new email"
+                  placeholder={t('enterNewEmail')}
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                   required
                 />
               </div>
               <Button type="submit" disabled={isUpdatingEmail}>
-                {isUpdatingEmail ? 'Updating...' : 'Update Email'}
+                {isUpdatingEmail ? t('updating') : t('updateEmailButton')}
               </Button>
             </form>
           </CardContent>
@@ -168,37 +168,37 @@ export default function Settings() {
         {/* Update Password */}
         <Card>
           <CardHeader>
-            <CardTitle>Update Password</CardTitle>
+            <CardTitle>{t('updatePassword')}</CardTitle>
             <CardDescription>
-              Change your password. Must be at least 6 characters.
+              {t('updatePasswordDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleUpdatePassword} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
+                <Label htmlFor="new-password">{t('newPassword')}</Label>
                 <Input
                   id="new-password"
                   type="password"
-                  placeholder="Enter new password"
+                  placeholder={t('enterNewPassword')}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm New Password</Label>
+                <Label htmlFor="confirm-password">{t('confirmNewPassword')}</Label>
                 <Input
                   id="confirm-password"
                   type="password"
-                  placeholder="Confirm new password"
+                  placeholder={t('confirmPasswordPlaceholder')}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                 />
               </div>
               <Button type="submit" disabled={isUpdatingPassword}>
-                {isUpdatingPassword ? 'Updating...' : 'Update Password'}
+                {isUpdatingPassword ? t('updating') : t('updatePasswordButton')}
               </Button>
             </form>
           </CardContent>
@@ -207,9 +207,9 @@ export default function Settings() {
         {/* Logout Section */}
         <Card className="border-destructive/50">
           <CardHeader>
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            <CardTitle className="text-destructive">{t('dangerZone')}</CardTitle>
             <CardDescription>
-              Log out of your account
+              {t('logoutDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -219,7 +219,7 @@ export default function Settings() {
               className="gap-2"
             >
               <LogOut className="h-4 w-4" />
-              Log Out
+              {t('logoutButton')}
             </Button>
           </CardContent>
         </Card>
