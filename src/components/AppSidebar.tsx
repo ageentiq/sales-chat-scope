@@ -21,7 +21,7 @@ export function AppSidebar() {
     { title: t('dashboard'), url: "/", icon: Home },
     { title: t('messages'), url: "/messages", icon: MessageSquare },
     { title: t('contacts'), url: "/contacts", icon: Users },
-    { title: 'Settings', url: "/settings", icon: Settings },
+    { title: t('settings'), url: "/settings", icon: Settings },
   ];
 
   return (
