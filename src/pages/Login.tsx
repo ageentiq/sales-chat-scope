@@ -32,45 +32,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-12 flex-col justify-between relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center">
-              <MessageSquare className="w-7 h-7 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-white">Sales Chat</h1>
+    <div className="min-h-screen flex items-center justify-center p-8 bg-gray-50">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-2 mb-8">
+          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+            <MessageSquare className="w-6 h-6 text-white" />
           </div>
-          <p className="text-blue-100 text-lg max-w-md">
-            Streamline your sales conversations and boost productivity with our intelligent chat platform.
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">Sales Chat</h1>
         </div>
-        
-        <div className="relative z-10 space-y-6">
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
-            <p className="text-white text-sm mb-2 font-medium">Featured</p>
-            <p className="text-blue-50 text-base">
-              "This platform has transformed how we manage customer conversations. Highly recommended!"
-            </p>
-            <p className="text-blue-200 text-sm mt-3">— Sarah Johnson, Sales Director</p>
-          </div>
-        </div>
-      </div>
 
-      {/* Right Side - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
-        <div className="w-full max-w-md">
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-              <MessageSquare className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">Sales Chat</h1>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">
                 {isLogin ? 'Welcome back' : 'Create account'}
@@ -177,10 +149,9 @@ export default function Login() {
             </div>
           </div>
 
-          <p className="text-center text-sm text-gray-500 mt-8">
-            By continuing, you agree to our Terms of Service and Privacy Policy
-          </p>
-        </div>
+        <p className="text-center text-sm text-gray-500 mt-8">
+          By continuing, you agree to our Terms of Service and Privacy Policy
+        </p>
       </div>
     </div>
   );
