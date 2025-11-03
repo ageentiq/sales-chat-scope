@@ -41,11 +41,11 @@ function AppLayout() {
                 variant="outline"
                 size="sm"
                 onClick={toggleLanguage}
-                className="gap-2 border-gray-300 hover:bg-gray-50"
+                className="gap-2 border-gray-300 hover:bg-gray-50 hover:text-gray-900"
                 aria-label="Toggle language"
               >
                 <Languages className="h-4 w-4" />
-                <span className="text-sm font-medium">{language === 'ar' ? 'English' : 'عربي'}</span>
+                <span className="text-sm font-medium text-gray-900">{language === 'ar' ? 'EN' : 'AR'}</span>
               </Button>
             </div>
           </div>
