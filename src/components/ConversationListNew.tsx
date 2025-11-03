@@ -15,6 +15,7 @@ import {
 import { ConversationMessage } from "@/data/mockData";
 import { useUniqueConversations } from "@/hooks/useConversations";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getObjectIdString } from "@/lib/utils";
 
 interface ConversationListProps {
   onConversationSelect: (conversationId: string) => void;
@@ -109,7 +110,7 @@ export const ConversationList = ({
               
               return (
                 <div
-                  key={conversation._id.$oid}
+                  key={getObjectIdString(conversation._id)}
                   className={`p-4 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-all duration-200 border-l-4 ${
                     isSelected 
                       ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500' 
