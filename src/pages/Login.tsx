@@ -9,8 +9,7 @@ import { Mail, Lock, Loader2, MessageSquare } from 'lucide-react';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLogin, setIsLogin] = useState(true);
-  const { login, register, error } = useAuth();
+  const { login, error } = useAuth();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -18,11 +17,7 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (isLogin) {
-        await login(email, password);
-      } else {
-        await register(email, password);
-      }
+      await login(email, password);
       navigate('/dashboard');
     } catch (error) {
       console.error('Authentication error:', error);
@@ -45,12 +40,10 @@ export default function Login() {
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                {isLogin ? 'Welcome back' : 'Create account'}
+                Welcome back
               </h2>
               <p className="text-gray-600">
-                {isLogin 
-                  ? 'Enter your credentials to access your account' 
-                  : 'Sign up to get started with Sales Chat'}
+                Enter your credentials to access your account
               </p>
             </div>
 
@@ -99,11 +92,6 @@ export default function Login() {
                     className="pl-10 h-11 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
-                {!isLogin && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Must be at least 6 characters
-                  </p>
-                )}
               </div>
 
               <Button 
@@ -116,37 +104,11 @@ export default function Login() {
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Please wait...
                   </span>
-                ) : isLogin ? (
-                  'Sign in'
                 ) : (
-                  'Create account'
+                  'Sign in'
                 )}
               </Button>
             </form>
-
-            <div className="mt-6 text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setEmail('');
-                  setPassword('');
-                }}
-                className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                {isLogin ? (
-                  <>
-                    Don't have an account?{' '}
-                    <span className="text-blue-600 font-medium hover:text-blue-700">Sign up</span>
-                  </>
-                ) : (
-                  <>
-                    Already have an account?{' '}
-                    <span className="text-blue-600 font-medium hover:text-blue-700">Sign in</span>
-                  </>
-                )}
-              </button>
-            </div>
           </div>
 
         <p className="text-center text-sm text-gray-500 mt-8">
