@@ -54,16 +54,18 @@ export default function Settings() {
 
     setIsUpdatingEmail(true);
     try {
-      const { data, error } = await supabase.auth.updateUser({ email: newEmail });
-      
+      const { data, error } = await supabase.functions.invoke('update-email', {
+        body: { newEmail },
+      });
+
       if (error) throw error;
-      
+
       toast({
         title: t('success'),
         description: t('emailUpdatedSuccessfully'),
       });
       setNewEmail('');
-      
+
       // Refresh the session to get updated user data
       await supabase.auth.refreshSession();
     } catch (error: any) {
