@@ -22,6 +22,7 @@ export default function Settings() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isResending, setIsResending] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -40,6 +41,26 @@ export default function Settings() {
     }
   };
 
+  const handleResendEmailChange = async () => {
+    if (!user?.new_email) return;
+    setIsResending(true);
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      // @ts-ignore - resend supports 'email_change'
+      const { error } = await (supabase as any).auth.resend({
+        type: 'email_change',
+        email: user.new_email,
+        options: { emailRedirectTo: redirectUrl },
+      });
+      if (error) throw error;
+      toast({ title: t('success'), description: t('emailConfirmationResent') });
+    } catch (error: any) {
+      toast({ title: t('error'), description: error.message || t('failedToResendEmail'), variant: 'destructive' });
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -54,7 +75,11 @@ export default function Settings() {
 
     setIsUpdatingEmail(true);
     try {
-      const { error } = await supabase.auth.updateUser({ email: newEmail });
+      const redirectUrl = `${window.location.origin}/`;
+      const { data, error } = await supabase.auth.updateUser(
+        { email: newEmail },
+        { emailRedirectTo: redirectUrl }
+      );
       
       if (error) throw error;
       
@@ -130,7 +155,12 @@ export default function Settings() {
             <AlertCircle className="h-4 w-4 text-blue-600" />
             <AlertTitle className="text-blue-900">{t('pendingEmailChange')}</AlertTitle>
             <AlertDescription className="text-blue-800">
-              {t('pendingEmailChangeDescription').replace('{email}', user.new_email)}
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <span>{t('pendingEmailChangeDescription').replace('{email}', user.new_email)}</span>
+                <Button variant="outline" size="sm" onClick={handleResendEmailChange} disabled={isResending}>
+                  {isResending ? t('sending') : t('resendConfirmation')}
+                </Button>
+              </div>
             </AlertDescription>
           </Alert>
         )}
