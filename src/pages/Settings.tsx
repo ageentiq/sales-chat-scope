@@ -22,7 +22,6 @@ export default function Settings() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isResending, setIsResending] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -41,26 +40,6 @@ export default function Settings() {
     }
   };
 
-  const handleResendEmailChange = async () => {
-    if (!user?.new_email) return;
-    setIsResending(true);
-    try {
-      const redirectUrl = `${window.location.origin}/`;
-      // @ts-ignore - resend supports 'email_change'
-      const { error } = await (supabase as any).auth.resend({
-        type: 'email_change',
-        email: user.new_email,
-        options: { emailRedirectTo: redirectUrl },
-      });
-      if (error) throw error;
-      toast({ title: t('success'), description: t('emailConfirmationResent') });
-    } catch (error: any) {
-      toast({ title: t('error'), description: error.message || t('failedToResendEmail'), variant: 'destructive' });
-    } finally {
-      setIsResending(false);
-    }
-  };
-
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -75,19 +54,18 @@ export default function Settings() {
 
     setIsUpdatingEmail(true);
     try {
-      const redirectUrl = `${window.location.origin}/`;
-      const { data, error } = await supabase.auth.updateUser(
-        { email: newEmail },
-        { emailRedirectTo: redirectUrl }
-      );
+      const { data, error } = await supabase.auth.updateUser({ email: newEmail });
       
       if (error) throw error;
       
       toast({
         title: t('success'),
-        description: t('emailConfirmationSent'),
+        description: t('emailUpdatedSuccessfully'),
       });
       setNewEmail('');
+      
+      // Refresh the session to get updated user data
+      await supabase.auth.refreshSession();
     } catch (error: any) {
       toast({
         title: t('error'),
@@ -149,22 +127,6 @@ export default function Settings() {
       <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('settings')}</h1>
       
       <div className="space-y-6">
-        {/* Pending Email Change Alert */}
-        {user?.new_email && (
-          <Alert className="border-blue-500 bg-blue-50">
-            <AlertCircle className="h-4 w-4 text-blue-600" />
-            <AlertTitle className="text-blue-900">{t('pendingEmailChange')}</AlertTitle>
-            <AlertDescription className="text-blue-800">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <span>{t('pendingEmailChangeDescription').replace('{email}', user.new_email)}</span>
-                <Button variant="outline" size="sm" onClick={handleResendEmailChange} disabled={isResending}>
-                  {isResending ? t('sending') : t('resendConfirmation')}
-                </Button>
-              </div>
-            </AlertDescription>
-          </Alert>
-        )}
-
         {/* Current Email Display */}
         <Card>
           <CardHeader>
