@@ -386,6 +386,51 @@ app.get('/api/analysis/:conversationId', async (req, res) => {
   }
 });
 
+// Get transition statistics from analysis collection
+app.get('/api/analysis/stats/transitions', async (req, res) => {
+  try {
+    console.log('🔍 [API] Fetching transition stats...');
+    
+    const allAnalysis = await analysisCollection.find({}).toArray();
+    console.log('📊 [API] Found', allAnalysis.length, 'analysis records');
+    
+    const stats = {
+      noResponse: 0,
+      futureInterest: 0,
+      notInterested: 0,
+      createProspect: 0,
+      total: allAnalysis.length
+    };
+    
+    allAnalysis.forEach(analysis => {
+      const transition = (analysis.transition || '').toLowerCase().trim();
+      
+      if (transition.includes('no response') || transition.includes('لم يتم الرد')) {
+        stats.noResponse++;
+      } else if (transition.includes('future interest') || transition.includes('مهتم بالمراحل القادمة') || transition.includes('مهتم')) {
+        stats.futureInterest++;
+      } else if (transition.includes('not interested') || transition.includes('غير مهتم')) {
+        stats.notInterested++;
+      } else if (transition.includes('create prospect') || transition.includes('إنشاء صفقة') || transition.includes('prospect')) {
+        stats.createProspect++;
+      }
+    });
+    
+    console.log('✅ [API] Transition stats:', stats);
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('❌ [API] Error fetching transition stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch transition stats'
+    });
+  }
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
