@@ -121,3 +121,13 @@ export function useAnalysisByConversationId(conversationId: string) {
     staleTime: 1000 * 60 * 5, // 5 minutes - analysis data changes less frequently
   });
 }
+
+// Get transition statistics
+export function useTransitionStats() {
+  return useQuery({
+    queryKey: [...conversationKeys.all, 'transitionStats'],
+    queryFn: () => ConversationService.getTransitionStats(),
+    staleTime: 1000 * 60, // 1 minute
+    refetchInterval: 1000 * 60, // Auto-refetch every minute
+  });
+}
