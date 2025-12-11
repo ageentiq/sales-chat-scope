@@ -1,4 +1,4 @@
-import { Home, Users, MessageSquare, Settings } from "lucide-react";
+import { Home, MessageSquare, Settings } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
@@ -20,7 +20,6 @@ export function AppSidebar() {
   const items = [
     { title: t('dashboard'), url: "/", icon: Home },
     { title: t('messages'), url: "/messages", icon: MessageSquare },
-    { title: t('contacts'), url: "/contacts", icon: Users },
     { title: t('settings'), url: "/settings", icon: Settings },
   ];
 

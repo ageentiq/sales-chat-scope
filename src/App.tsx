@@ -10,7 +10,6 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Languages } from "lucide-react";
 import Dashboard from "./pages/Dashboard";
-import Contacts from "./pages/Contacts";
 import Messages from "./pages/Messages";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
@@ -54,7 +53,6 @@ function AppLayout() {
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/contacts" element={<Contacts />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
