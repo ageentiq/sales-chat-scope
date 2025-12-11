@@ -216,4 +216,33 @@ export class ConversationService {
       return null;
     }
   }
+
+  static async getTransitionStats(): Promise<{
+    noResponse: number;
+    futureInterest: number;
+    notInterested: number;
+    createProspect: number;
+    total: number;
+  }> {
+    try {
+      console.log('🔍 [ConversationService] Fetching transition stats from:', `${API_BASE_URL}/analysis/stats/transitions`);
+      const response = await fetch(`${API_BASE_URL}/analysis/stats/transitions`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('📊 [ConversationService] Transition stats response:', result);
+      
+      if (result.success && result.data) {
+        return result.data;
+      }
+      
+      return { noResponse: 0, futureInterest: 0, notInterested: 0, createProspect: 0, total: 0 };
+    } catch (error) {
+      console.error('💥 [ConversationService] Error fetching transition stats:', error);
+      return { noResponse: 0, futureInterest: 0, notInterested: 0, createProspect: 0, total: 0 };
+    }
+  }
 }

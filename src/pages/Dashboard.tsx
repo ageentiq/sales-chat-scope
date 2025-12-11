@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useUniqueConversations, useConversations } from "@/hooks/useConversations";
-import { MessageCircle, MessagesSquare, Users, TrendingUp, Clock, Activity, Info } from "lucide-react";
+import { useUniqueConversations, useConversations, useTransitionStats } from "@/hooks/useConversations";
+import { MessageCircle, MessagesSquare, Users, TrendingUp, Clock, Activity, Info, PhoneOff, Star, ThumbsDown, Briefcase } from "lucide-react";
 import { ConversationsChart } from "@/components/ConversationsChart";
 
 const Dashboard = () => {
@@ -11,6 +11,7 @@ const Dashboard = () => {
   // Use React Query hooks for data fetching
   const { data: uniqueConversations = [] } = useUniqueConversations();
   const { data: allConversations = [], isLoading: isLoadingAll } = useConversations();
+  const { data: transitionStats } = useTransitionStats();
   
   // Fallback to ensure we always have data
   const safeUniqueConversations = uniqueConversations || [];
@@ -470,6 +471,85 @@ const Dashboard = () => {
               <p className={`text-xs ${responseRateTrendColor} mt-1`}>
                 {responseRateTrendFormatted} {t('fromLastWeekUp')}
               </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Transition Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          {/* No Response */}
+          <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                <span className="block">No Response 1</span>
+                <span className="block text-xs text-gray-400">لم يتم الرد1</span>
+              </CardTitle>
+              <PhoneOff className="h-5 w-5 text-orange-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-gray-900">{transitionStats?.noResponse || 0}</div>
+              {transitionStats?.total ? (
+                <p className="text-xs text-gray-500 mt-1">
+                  {((transitionStats.noResponse / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
+                </p>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          {/* Future Interest */}
+          <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                <span className="block">Future Interest</span>
+                <span className="block text-xs text-gray-400">مهتم بالمراحل القادمة</span>
+              </CardTitle>
+              <Star className="h-5 w-5 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-gray-900">{transitionStats?.futureInterest || 0}</div>
+              {transitionStats?.total ? (
+                <p className="text-xs text-gray-500 mt-1">
+                  {((transitionStats.futureInterest / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
+                </p>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          {/* Not Interested */}
+          <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                <span className="block">Not Interested</span>
+                <span className="block text-xs text-gray-400">غير مهتم</span>
+              </CardTitle>
+              <ThumbsDown className="h-5 w-5 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-gray-900">{transitionStats?.notInterested || 0}</div>
+              {transitionStats?.total ? (
+                <p className="text-xs text-gray-500 mt-1">
+                  {((transitionStats.notInterested / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
+                </p>
+              ) : null}
+            </CardContent>
+          </Card>
+
+          {/* Create Prospect */}
+          <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                <span className="block">Create Prospect</span>
+                <span className="block text-xs text-gray-400">إنشاء صفقة</span>
+              </CardTitle>
+              <Briefcase className="h-5 w-5 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-gray-900">{transitionStats?.createProspect || 0}</div>
+              {transitionStats?.total ? (
+                <p className="text-xs text-gray-500 mt-1">
+                  {((transitionStats.createProspect / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
+                </p>
+              ) : null}
             </CardContent>
           </Card>
         </div>
