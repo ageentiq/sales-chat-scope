@@ -413,10 +413,11 @@ app.get('/api/analysis/stats/transitions', async (req, res) => {
       
       if (transition.includes('no response') || transition.includes('لم يتم الرد')) {
         stats.noResponse++;
+      } else if (transition.includes('not interested') || transition.includes('غير مهتم')) {
+        // Check "Not Interested/غير مهتم" BEFORE "Future Interest" because "غير مهتم" contains "مهتم"
+        stats.notInterested++;
       } else if (transition.includes('future interest') || transition.includes('مهتم بالمراحل القادمة') || transition.includes('مهتم')) {
         stats.futureInterest++;
-      } else if (transition.includes('not interested') || transition.includes('غير مهتم')) {
-        stats.notInterested++;
       } else if (transition.includes('create prospect') || transition.includes('إنشاء صفقة') || transition.includes('prospect')) {
         stats.createProspect++;
       }
