@@ -15,10 +15,10 @@ export const ConversationsChart = () => {
   const [filter, setFilter] = useState<FilterOption>('30days');
 
   const filterOptions: { value: FilterOption; label: string; days: number }[] = [
-    { value: '7days', label: t('last7Days') || 'Last 7 Days', days: 7 },
-    { value: '14days', label: t('last14Days') || 'Last 14 Days', days: 14 },
-    { value: '30days', label: t('last30Days') || 'Last 30 Days', days: 30 },
-    { value: '90days', label: t('last90Days') || 'Last 90 Days', days: 90 },
+    { value: '7days', label: t('last7Days'), days: 7 },
+    { value: '14days', label: t('last14Days'), days: 14 },
+    { value: '30days', label: t('last30Days'), days: 30 },
+    { value: '90days', label: t('last90Days'), days: 90 },
   ];
 
   // Generate chart data from actual conversations based on days
@@ -75,7 +75,7 @@ export const ConversationsChart = () => {
           <div className="flex items-center gap-2">
             <span className="text-lg font-semibold">{t('conversationsOverTime')}</span>
             <span className="text-sm font-normal text-muted-foreground">
-              ({totalInPeriod} {t('total') || 'total'})
+              ({totalInPeriod} {t('total')})
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -135,7 +135,7 @@ export const ConversationsChart = () => {
                 }
                 return label;
               }}
-              formatter={(value: number) => [value, t('conversations') || 'Conversations']}
+              formatter={(value: number) => [value, t('conversations')]}
             />
             <Area 
               type="monotone" 
