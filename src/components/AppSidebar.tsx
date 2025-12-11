@@ -1,6 +1,7 @@
 import { Home, MessageSquare, Settings } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Sidebar,
   SidebarContent,
@@ -15,7 +16,14 @@ import {
 
 export function AppSidebar() {
   const { t } = useLanguage();
-  const { state } = useSidebar();
+  const { state, setOpenMobile } = useSidebar();
+  const isMobile = useIsMobile();
+
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
   
   const items = [
     { title: t('dashboard'), url: "/", icon: Home },
@@ -47,6 +55,7 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end
+                      onClick={handleNavClick}
                       className={({ isActive }) =>
                         `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                           isActive
