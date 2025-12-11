@@ -8,119 +8,112 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 215 25% 27%;
+    --background: 210 20% 98%;
+    --foreground: 215 20% 35%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 27%;
+    --card-foreground: 215 20% 35%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 27%;
+    --popover-foreground: 215 20% 35%;
 
-    --primary: 217 91% 60%;
+    --primary: 217 70% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 214 32% 91%;
-    --secondary-foreground: 215 25% 27%;
+    --secondary: 214 25% 93%;
+    --secondary-foreground: 215 20% 35%;
 
     --muted: 220 14% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted-foreground: 215 15% 50%;
 
-    --accent: 217 91% 60%;
+    --accent: 217 50% 55%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 217 91% 60%;
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 217 60% 55%;
 
     /* Sales Dashboard Specific Colors */
-    --success: 142 71% 45%;
+    --success: 142 50% 42%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
+    --warning: 38 70% 48%;
     --warning-foreground: 0 0% 100%;
-    --info: 199 89% 48%;
+    --info: 199 65% 45%;
     --info-foreground: 0 0% 100%;
 
-    /* Chat Colors */
-    --chat-inbound: 220 14% 96%;
-    --chat-inbound-foreground: 215 25% 27%;
-    --chat-outbound: 217 91% 60%;
+    /* Chat Colors - softer for comfortable reading */
+    --chat-inbound: 220 15% 95%;
+    --chat-inbound-foreground: 215 20% 30%;
+    --chat-outbound: 217 55% 50%;
     --chat-outbound-foreground: 0 0% 100%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(199 89% 48%));
-    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(120 60% 50%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(220 14% 98%));
+    --gradient-primary: linear-gradient(135deg, hsl(217 60% 50%), hsl(199 55% 48%));
+    --gradient-success: linear-gradient(135deg, hsl(142 50% 42%), hsl(120 45% 45%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(220 15% 98%));
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 100%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
+    --sidebar-foreground: 215 15% 35%;
+    --sidebar-primary: 217 60% 50%;
     --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 220 15% 96%;
+    --sidebar-accent-foreground: 215 15% 30%;
+    --sidebar-border: 220 15% 90%;
+    --sidebar-ring: 217 60% 55%;
   }
 
   .dark {
-    --background: 215 28% 17%;
-    --foreground: 213 31% 91%;
+    --background: 220 20% 14%;
+    --foreground: 215 20% 85%;
 
-    --card: 215 28% 17%;
-    --card-foreground: 213 31% 91%;
+    --card: 220 18% 18%;
+    --card-foreground: 215 20% 85%;
 
-    --popover: 215 28% 17%;
-    --popover-foreground: 213 31% 91%;
+    --popover: 220 18% 18%;
+    --popover-foreground: 215 20% 85%;
 
-    --primary: 217 91% 60%;
+    --primary: 217 60% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 215 25% 27%;
-    --secondary-foreground: 213 31% 91%;
+    --secondary: 220 15% 22%;
+    --secondary-foreground: 215 20% 85%;
 
-    --muted: 215 25% 27%;
-    --muted-foreground: 217 10% 64%;
+    --muted: 220 15% 22%;
+    --muted-foreground: 215 15% 60%;
 
-    --accent: 215 25% 27%;
-    --accent-foreground: 213 31% 91%;
+    --accent: 220 18% 25%;
+    --accent-foreground: 215 20% 85%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 55% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 25% 27%;
-    --input: 215 25% 27%;
-    --ring: 217 91% 60%;
+    --border: 220 15% 25%;
+    --input: 220 15% 25%;
+    --ring: 217 55% 55%;
 
-    /* Dark mode sales colors */
-    --success: 142 71% 45%;
+    /* Dark mode sales colors - softer */
+    --success: 142 45% 40%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%; 
+    --warning: 38 60% 45%; 
     --warning-foreground: 0 0% 100%;
-    --info: 199 89% 48%;
+    --info: 199 55% 45%;
     --info-foreground: 0 0% 100%;
 
-    /* Dark mode chat colors */
-    --chat-inbound: 215 25% 27%;
-    --chat-inbound-foreground: 213 31% 91%;
-    --chat-outbound: 217 91% 60%;
-    --chat-outbound-foreground: 0 0% 100%;
+    /* Dark mode chat colors - comfortable for reading */
+    --chat-inbound: 220 15% 22%;
+    --chat-inbound-foreground: 215 15% 80%;
+    --chat-outbound: 217 50% 45%;
+    --chat-outbound-foreground: 0 0% 98%;
 
     /* Dark mode gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(199 89% 48%));
-    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(120 60% 50%));
-    --gradient-card: linear-gradient(145deg, hsl(215 28% 17%), hsl(215 25% 20%));
+    --gradient-primary: linear-gradient(135deg, hsl(217 55% 50%), hsl(199 50% 45%));
+    --gradient-success: linear-gradient(135deg, hsl(142 45% 40%), hsl(120 40% 42%));
+    --gradient-card: linear-gradient(145deg, hsl(220 18% 18%), hsl(220 15% 20%));
   }
 }
 
