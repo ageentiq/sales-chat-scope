@@ -124,6 +124,14 @@ const translations = {
     loggedOut: 'تم تسجيل الخروج',
     loggedOutSuccessfully: 'تم تسجيل الخروج بنجاح',
     failedToLogout: 'فشل تسجيل الخروج',
+    // Chart filter translations
+    last7Days: 'آخر 7 أيام',
+    last14Days: 'آخر 14 يوم',
+    last30Days: 'آخر 30 يوم',
+    last90Days: 'آخر 90 يوم',
+    total: 'الإجمالي',
+    // Email update
+    emailUpdatedSuccessfully: 'تم تحديث البريد الإلكتروني بنجاح',
   },
   en: {
     home: 'Home',
@@ -238,6 +246,14 @@ const translations = {
     loggedOut: 'Logged out',
     loggedOutSuccessfully: 'You have been successfully logged out',
     failedToLogout: 'Failed to logout',
+    // Chart filter translations
+    last7Days: 'Last 7 Days',
+    last14Days: 'Last 14 Days',
+    last30Days: 'Last 30 Days',
+    last90Days: 'Last 90 Days',
+    total: 'total',
+    // Email update
+    emailUpdatedSuccessfully: 'Email updated successfully',
   },
 };
 
