@@ -55,7 +55,7 @@ export function AppSidebar() {
                         }`
                       }
                     >
-                      <item.icon className="h-5 w-5" />
+                      <item.icon className="h-5 w-5 text-gray-400" />
                       <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
