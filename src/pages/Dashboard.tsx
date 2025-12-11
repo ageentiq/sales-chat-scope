@@ -481,8 +481,8 @@ const Dashboard = () => {
           <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
-                <span className="block">No Response 1</span>
-                <span className="block text-xs text-gray-400">لم يتم الرد1</span>
+                <span className="block">No Response</span>
+                <span className="block text-xs text-gray-400">لم يتم الرد</span>
               </CardTitle>
               <PhoneOff className="h-5 w-5 text-orange-500" />
             </CardHeader>

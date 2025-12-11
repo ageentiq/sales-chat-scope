@@ -1,46 +1,99 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
-import { Info } from "lucide-react";
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { Info, Calendar } from "lucide-react";
 import { useConversations } from "@/hooks/useConversations";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format, subDays, startOfDay, isWithinInterval } from "date-fns";
+
+type FilterOption = '7days' | '14days' | '30days' | '90days';
 
 export const ConversationsChart = () => {
   const { t } = useLanguage();
   const { data: allConversations = [] } = useConversations();
+  const [filter, setFilter] = useState<FilterOption>('30days');
 
-  // Generate chart data from actual conversations
+  const filterOptions: { value: FilterOption; label: string; days: number }[] = [
+    { value: '7days', label: t('last7Days') || 'Last 7 Days', days: 7 },
+    { value: '14days', label: t('last14Days') || 'Last 14 Days', days: 14 },
+    { value: '30days', label: t('last30Days') || 'Last 30 Days', days: 30 },
+    { value: '90days', label: t('last90Days') || 'Last 90 Days', days: 90 },
+  ];
+
+  // Generate chart data from actual conversations based on days
   const data = useMemo(() => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const monthCounts: Record<string, number> = {};
+    const selectedFilter = filterOptions.find(f => f.value === filter);
+    const daysCount = selectedFilter?.days || 30;
     
-    // Initialize all months with 0
-    months.forEach(month => {
-      monthCounts[month] = 0;
+    const today = startOfDay(new Date());
+    const startDate = subDays(today, daysCount - 1);
+    
+    // Create array of dates
+    const dateArray: { date: Date; dateStr: string; displayDate: string }[] = [];
+    for (let i = 0; i < daysCount; i++) {
+      const date = subDays(today, daysCount - 1 - i);
+      dateArray.push({
+        date,
+        dateStr: format(date, 'yyyy-MM-dd'),
+        displayDate: daysCount <= 14 ? format(date, 'MMM d') : format(date, 'd'),
+      });
+    }
+    
+    // Count conversations by day
+    const dayCounts: Record<string, number> = {};
+    dateArray.forEach(d => {
+      dayCounts[d.dateStr] = 0;
     });
     
-    // Count conversations by month
     allConversations.forEach(conv => {
-      const date = new Date(conv.timestamp);
-      const monthName = months[date.getMonth()];
-      if (monthName) {
-        monthCounts[monthName] = (monthCounts[monthName] || 0) + 1;
+      const convDate = startOfDay(new Date(conv.timestamp));
+      const dateStr = format(convDate, 'yyyy-MM-dd');
+      
+      if (isWithinInterval(convDate, { start: startDate, end: today })) {
+        dayCounts[dateStr] = (dayCounts[dateStr] || 0) + 1;
       }
     });
     
     // Convert to chart format
-    return months.map(month => ({
-      month,
-      conversations: monthCounts[month] || 0,
+    return dateArray.map(d => ({
+      day: d.displayDate,
+      fullDate: d.dateStr,
+      conversations: dayCounts[d.dateStr] || 0,
     }));
-  }, [allConversations]);
+  }, [allConversations, filter]);
+
+  // Calculate total for the selected period
+  const totalInPeriod = useMemo(() => {
+    return data.reduce((sum, d) => sum + d.conversations, 0);
+  }, [data]);
 
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span className="text-lg font-semibold">{t('conversationsOverTime')}</span>
-          <Info className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-semibold">{t('conversationsOverTime')}</span>
+            <span className="text-sm font-normal text-muted-foreground">
+              ({totalInPeriod} {t('total') || 'total'})
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Select value={filter} onValueChange={(value: FilterOption) => setFilter(value)}>
+              <SelectTrigger className="w-[150px] h-8 text-sm">
+                <Calendar className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {filterOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Info className="h-4 w-4 text-muted-foreground" />
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -54,17 +107,19 @@ export const ConversationsChart = () => {
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
             <XAxis 
-              dataKey="month" 
+              dataKey="day" 
               stroke="#9ca3af"
-              style={{ fontSize: '12px' }}
+              style={{ fontSize: '11px' }}
               axisLine={false}
               tickLine={false}
+              interval={data.length > 30 ? Math.floor(data.length / 10) : 'preserveStartEnd'}
             />
             <YAxis 
               stroke="#9ca3af"
               style={{ fontSize: '12px' }}
               axisLine={false}
               tickLine={false}
+              allowDecimals={false}
             />
             <Tooltip 
               contentStyle={{
@@ -74,6 +129,13 @@ export const ConversationsChart = () => {
                 padding: '8px 12px',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
               }}
+              labelFormatter={(label, payload) => {
+                if (payload && payload[0]) {
+                  return format(new Date(payload[0].payload.fullDate), 'MMMM d, yyyy');
+                }
+                return label;
+              }}
+              formatter={(value: number) => [value, t('conversations') || 'Conversations']}
             />
             <Area 
               type="monotone" 
