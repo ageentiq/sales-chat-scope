@@ -11,7 +11,14 @@ const PORT = process.env.PORT || 3001;
 // Middleware - CORS configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-  : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:8080'];
+  : [
+      'http://localhost:5173', 
+      'http://localhost:3000', 
+      'http://localhost:8080',
+      'http://127.0.0.1:8080',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:3000'
+    ];
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -19,7 +26,9 @@ const corsOptions = {
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      console.error('❌ [CORS] Blocked origin:', origin);
+      console.log('✅ [CORS] Allowed origins:', allowedOrigins);
+      const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}. Allowed origins: ${allowedOrigins.join(', ')}`;
       return callback(new Error(msg), false);
     }
     
@@ -389,10 +398,7 @@ app.get('/api/analysis/:conversationId', async (req, res) => {
 // Get transition statistics from analysis collection
 app.get('/api/analysis/stats/transitions', async (req, res) => {
   try {
-    console.log('🔍 [API] Fetching transition stats...');
-    
     const allAnalysis = await analysisCollection.find({}).toArray();
-    console.log('📊 [API] Found', allAnalysis.length, 'analysis records');
     
     const stats = {
       noResponse: 0,
@@ -416,18 +422,10 @@ app.get('/api/analysis/stats/transitions', async (req, res) => {
       }
     });
     
-    console.log('✅ [API] Transition stats:', stats);
-    
-    res.json({
-      success: true,
-      data: stats
-    });
+    res.json({ success: true, data: stats });
   } catch (error) {
-    console.error('❌ [API] Error fetching transition stats:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch transition stats'
-    });
+    console.error('Error fetching transition stats:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch transition stats' });
   }
 });
 
