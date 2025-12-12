@@ -38,11 +38,14 @@ export const ConversationList = ({
   // Fallback to ensure we always have data
   const safeConversations = conversations || [];
   
-  const filteredConversations = safeConversations.filter(conv => 
-    conv.conversation_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    conv.inbound.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    conv.outbound.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Sort by timestamp descending (newest first) and filter
+  const filteredConversations = safeConversations
+    .filter(conv => 
+      conv.conversation_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      conv.inbound.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      conv.outbound.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
