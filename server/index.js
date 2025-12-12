@@ -9,7 +9,10 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware - CORS configuration
-const allowedOrigins = ['https://sales.agentiq.llc'];
+const allowedOrigins = [
+  'https://sales.agentiq.llc',
+  'https://65d6b0fb-6f75-4b0c-aa23-bc1d78fd7192.lovableproject.com'
+];
 
 const corsOptions = {
   origin: function (origin, callback) {
