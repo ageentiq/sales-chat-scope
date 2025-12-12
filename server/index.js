@@ -17,7 +17,9 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       'http://localhost:8080',
       'http://127.0.0.1:8080',
       'http://127.0.0.1:5173',
-      'http://127.0.0.1:3000'
+      'http://127.0.0.1:3000',
+      'https://id-preview--65d6b0fb-6f75-4b0c-aa23-bc1d78fd7192.lovable.app',
+      'https://65d6b0fb-6f75-4b0c-aa23-bc1d78fd7192.lovable.app'
     ];
 
 const corsOptions = {
