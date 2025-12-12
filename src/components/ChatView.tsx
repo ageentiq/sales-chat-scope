@@ -27,8 +27,14 @@ const MessageSkeleton = ({ align = "left" }: { align?: "left" | "right" }) => (
 export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const { t, language } = useLanguage();
   console.log('👀 [ChatView] Rendering with conversationId:', conversationId);
-  const { data: messages = [], isLoading } = useConversationsByGroupId(conversationId);
+  const { data: rawMessages = [], isLoading } = useConversationsByGroupId(conversationId);
   const { data: analysis, isLoading: isLoadingAnalysis } = useAnalysisByConversationId(conversationId);
+  
+  // Sort messages by timestamp ascending (oldest first for chat view)
+  const messages = [...rawMessages].sort((a, b) => 
+    new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  );
+  
   console.log('📨 [ChatView] Messages received:', messages.length, 'messages');
   console.log('📊 [ChatView] Analysis received:', analysis);
 
