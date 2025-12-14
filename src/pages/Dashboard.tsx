@@ -212,56 +212,57 @@ const Dashboard = () => {
   const avgResponseTimeTrendColor = avgResponseTimeTrend <= 0 ? 'text-green-600' : 'text-red-600';
   const avgResponseTimeTrendText = avgResponseTimeTrend <= 0 ? 'fasterThanLastWeek' : 'slowerThanLastWeek';
   
-  // Calculate Response Rate: percentage of conversations that received at least one response
+  // Calculate Response Rate: percentage of conversations where the customer replied (has 2+ messages)
   const calculateResponseRate = () => {
     if (totalConversations === 0) return { rate: 0, trend: 0 };
 
-    // Count conversations with at least one non-empty outbound message
-    const conversationsWithResponses = new Set<string>();
+    // Group messages by conversation_id and count messages per conversation
+    const conversationMessageCounts: Record<string, number> = {};
     safeAllConversations.forEach(message => {
-      if (message.outbound && message.outbound.trim() !== '') {
-        conversationsWithResponses.add(message.conversation_id);
+      if (!conversationMessageCounts[message.conversation_id]) {
+        conversationMessageCounts[message.conversation_id] = 0;
       }
+      conversationMessageCounts[message.conversation_id]++;
     });
 
-    const currentRate = (conversationsWithResponses.size / totalConversations) * 100;
+    // Count conversations with at least 2 messages (customer responded)
+    const conversationsWithResponse = Object.values(conversationMessageCounts)
+      .filter(count => count >= 2).length;
+
+    const currentRate = (conversationsWithResponse / totalConversations) * 100;
 
     // Calculate trend: compare last 7 days to previous 7 days
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
 
-    // Last 7 days
-    const lastWeekConversations = new Set<string>();
-    const lastWeekResponses = new Set<string>();
-    
-    // Previous 7 days (8-14 days ago)
-    const prevWeekConversations = new Set<string>();
-    const prevWeekResponses = new Set<string>();
+    // Group by time period
+    const lastWeekCounts: Record<string, number> = {};
+    const prevWeekCounts: Record<string, number> = {};
 
     safeAllConversations.forEach(message => {
       const msgDate = new Date(message.timestamp);
       
       if (msgDate >= sevenDaysAgo) {
-        lastWeekConversations.add(message.conversation_id);
-        if (message.outbound && message.outbound.trim() !== '') {
-          lastWeekResponses.add(message.conversation_id);
+        if (!lastWeekCounts[message.conversation_id]) {
+          lastWeekCounts[message.conversation_id] = 0;
         }
+        lastWeekCounts[message.conversation_id]++;
       } else if (msgDate >= fourteenDaysAgo && msgDate < sevenDaysAgo) {
-        prevWeekConversations.add(message.conversation_id);
-        if (message.outbound && message.outbound.trim() !== '') {
-          prevWeekResponses.add(message.conversation_id);
+        if (!prevWeekCounts[message.conversation_id]) {
+          prevWeekCounts[message.conversation_id] = 0;
         }
+        prevWeekCounts[message.conversation_id]++;
       }
     });
 
-    const lastWeekRate = lastWeekConversations.size > 0 
-      ? (lastWeekResponses.size / lastWeekConversations.size) * 100 
-      : 0;
-    
-    const prevWeekRate = prevWeekConversations.size > 0 
-      ? (prevWeekResponses.size / prevWeekConversations.size) * 100 
-      : 0;
+    const lastWeekTotal = Object.keys(lastWeekCounts).length;
+    const lastWeekWithResponse = Object.values(lastWeekCounts).filter(count => count >= 2).length;
+    const lastWeekRate = lastWeekTotal > 0 ? (lastWeekWithResponse / lastWeekTotal) * 100 : 0;
+
+    const prevWeekTotal = Object.keys(prevWeekCounts).length;
+    const prevWeekWithResponse = Object.values(prevWeekCounts).filter(count => count >= 2).length;
+    const prevWeekRate = prevWeekTotal > 0 ? (prevWeekWithResponse / prevWeekTotal) * 100 : 0;
 
     const trend = prevWeekRate > 0 ? lastWeekRate - prevWeekRate : 0;
 
