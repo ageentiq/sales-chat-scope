@@ -231,40 +231,40 @@ const Dashboard = () => {
 
     const currentRate = (conversationsWithResponse / totalConversations) * 100;
 
-    // Calculate trend: compare last 7 days to previous 7 days
+    // Calculate trend: compare today vs yesterday
     const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
 
     // Group by time period
-    const lastWeekCounts: Record<string, number> = {};
-    const prevWeekCounts: Record<string, number> = {};
+    const todayCounts: Record<string, number> = {};
+    const yesterdayCounts: Record<string, number> = {};
 
     safeAllConversations.forEach(message => {
       const msgDate = new Date(message.timestamp);
       
-      if (msgDate >= sevenDaysAgo) {
-        if (!lastWeekCounts[message.conversation_id]) {
-          lastWeekCounts[message.conversation_id] = 0;
+      if (msgDate >= todayStart) {
+        if (!todayCounts[message.conversation_id]) {
+          todayCounts[message.conversation_id] = 0;
         }
-        lastWeekCounts[message.conversation_id]++;
-      } else if (msgDate >= fourteenDaysAgo && msgDate < sevenDaysAgo) {
-        if (!prevWeekCounts[message.conversation_id]) {
-          prevWeekCounts[message.conversation_id] = 0;
+        todayCounts[message.conversation_id]++;
+      } else if (msgDate >= yesterdayStart && msgDate < todayStart) {
+        if (!yesterdayCounts[message.conversation_id]) {
+          yesterdayCounts[message.conversation_id] = 0;
         }
-        prevWeekCounts[message.conversation_id]++;
+        yesterdayCounts[message.conversation_id]++;
       }
     });
 
-    const lastWeekTotal = Object.keys(lastWeekCounts).length;
-    const lastWeekWithResponse = Object.values(lastWeekCounts).filter(count => count >= 2).length;
-    const lastWeekRate = lastWeekTotal > 0 ? (lastWeekWithResponse / lastWeekTotal) * 100 : 0;
+    const todayTotal = Object.keys(todayCounts).length;
+    const todayWithResponse = Object.values(todayCounts).filter(count => count >= 2).length;
+    const todayRate = todayTotal > 0 ? (todayWithResponse / todayTotal) * 100 : 0;
 
-    const prevWeekTotal = Object.keys(prevWeekCounts).length;
-    const prevWeekWithResponse = Object.values(prevWeekCounts).filter(count => count >= 2).length;
-    const prevWeekRate = prevWeekTotal > 0 ? (prevWeekWithResponse / prevWeekTotal) * 100 : 0;
+    const yesterdayTotal = Object.keys(yesterdayCounts).length;
+    const yesterdayWithResponse = Object.values(yesterdayCounts).filter(count => count >= 2).length;
+    const yesterdayRate = yesterdayTotal > 0 ? (yesterdayWithResponse / yesterdayTotal) * 100 : 0;
 
-    const trend = prevWeekRate > 0 ? lastWeekRate - prevWeekRate : 0;
+    const trend = yesterdayRate > 0 ? todayRate - yesterdayRate : 0;
 
     return { rate: currentRate, trend };
   };
@@ -470,7 +470,7 @@ const Dashboard = () => {
             <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
               <div className="text-2xl md:text-3xl font-bold text-gray-900">{responseRate}</div>
               <p className={`text-[10px] md:text-xs ${responseRateTrendColor} mt-1`}>
-                {responseRateTrendFormatted} {t('fromLastWeekUp')}
+                {responseRateTrendFormatted} {t('fromYesterday')}
               </p>
             </CardContent>
           </Card>
