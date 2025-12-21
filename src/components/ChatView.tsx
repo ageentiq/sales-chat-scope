@@ -30,15 +30,31 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const { data: rawMessages = [], isLoading } = useConversationsByGroupId(conversationId);
   const { data: analysis, isLoading: isLoadingAnalysis } = useAnalysisByConversationId(conversationId);
   
-  // Parse timestamp safely - handles "YYYY-MM-DD HH:mm" format
+  // Parse timestamp safely and consistently across browsers.
+  // If backend sends "YYYY-MM-DD HH:mm" (no timezone), treat it as LOCAL time.
   const parseTimestamp = (timestamp: string): Date => {
-    // Replace space with T for ISO format compatibility
-    const isoFormat = timestamp.replace(' ', 'T');
-    return new Date(isoFormat);
+    const m = timestamp.match(
+      /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/
+    );
+
+    if (m) {
+      const [, y, mo, d, h, mi, s] = m;
+      return new Date(
+        Number(y),
+        Number(mo) - 1,
+        Number(d),
+        Number(h),
+        Number(mi),
+        s ? Number(s) : 0
+      );
+    }
+
+    // ISO strings with timezone (e.g. ...Z) will be handled correctly by Date().
+    return new Date(timestamp);
   };
 
   // Sort messages by timestamp ascending (oldest first for chat view)
-  const messages = [...rawMessages].sort((a, b) => 
+  const messages = [...rawMessages].sort((a, b) =>
     parseTimestamp(a.timestamp).getTime() - parseTimestamp(b.timestamp).getTime()
   );
   
