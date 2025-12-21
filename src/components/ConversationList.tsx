@@ -235,7 +235,7 @@ export const ConversationList = ({
               disabled={currentPage === 1}
               className="h-9 px-3 text-xs font-medium text-gray-600 hover:text-primary hover:bg-primary/10 disabled:opacity-40 transition-all"
             >
-              First
+              {t('first')}
             </Button>
             <Button
               variant="ghost"
@@ -291,7 +291,7 @@ export const ConversationList = ({
               disabled={currentPage === totalPages}
               className="h-9 px-3 text-xs font-medium text-gray-600 hover:text-primary hover:bg-primary/10 disabled:opacity-40 transition-all"
             >
-              Last
+              {t('last')}
             </Button>
           </div>
         )}
