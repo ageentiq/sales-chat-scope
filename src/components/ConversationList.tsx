@@ -38,6 +38,13 @@ export const ConversationList = ({
   // Fallback to ensure we always have data
   const safeConversations = conversations || [];
   
+  // Parse timestamp safely - handles "YYYY-MM-DD HH:mm" format
+  const parseTimestamp = (timestamp: string): Date => {
+    // Replace space with T for ISO format compatibility
+    const isoFormat = timestamp.replace(' ', 'T');
+    return new Date(isoFormat);
+  };
+
   // Sort by timestamp descending (newest first) and filter
   const filteredConversations = safeConversations
     .filter(conv => 
@@ -45,10 +52,10 @@ export const ConversationList = ({
       conv.inbound.toLowerCase().includes(searchTerm.toLowerCase()) ||
       conv.outbound.toLowerCase().includes(searchTerm.toLowerCase())
     )
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    .sort((a, b) => parseTimestamp(b.timestamp).getTime() - parseTimestamp(a.timestamp).getTime());
 
   const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
+    const date = parseTimestamp(timestamp);
     const now = new Date();
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
     

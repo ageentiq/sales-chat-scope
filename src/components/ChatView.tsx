@@ -30,16 +30,23 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const { data: rawMessages = [], isLoading } = useConversationsByGroupId(conversationId);
   const { data: analysis, isLoading: isLoadingAnalysis } = useAnalysisByConversationId(conversationId);
   
+  // Parse timestamp safely - handles "YYYY-MM-DD HH:mm" format
+  const parseTimestamp = (timestamp: string): Date => {
+    // Replace space with T for ISO format compatibility
+    const isoFormat = timestamp.replace(' ', 'T');
+    return new Date(isoFormat);
+  };
+
   // Sort messages by timestamp ascending (oldest first for chat view)
   const messages = [...rawMessages].sort((a, b) => 
-    new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    parseTimestamp(a.timestamp).getTime() - parseTimestamp(b.timestamp).getTime()
   );
   
   console.log('📨 [ChatView] Messages received:', messages.length, 'messages');
   console.log('📊 [ChatView] Analysis received:', analysis);
 
   const formatTimestamp = (timestamp: string) => {
-    return new Date(timestamp).toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
+    return parseTimestamp(timestamp).toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
       hour: '2-digit',
       minute: '2-digit',
       month: 'short',
