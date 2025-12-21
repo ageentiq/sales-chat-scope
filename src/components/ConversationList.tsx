@@ -227,33 +227,72 @@ export const ConversationList = ({
         
         {/* Pagination */}
         {!isLoading && totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
-            <span className="text-xs text-gray-500">
-              {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredConversations.length)} of {filteredConversations.length}
-            </span>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="h-8 px-2"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="text-sm font-medium text-gray-700 min-w-[80px] text-center">
-                {currentPage} / {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="h-8 px-2"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+          <div className="flex items-center justify-center gap-2 px-4 py-4 border-t border-gray-100 bg-gradient-to-r from-gray-50/80 to-white/80 backdrop-blur-sm">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+              className="h-9 px-3 text-xs font-medium text-gray-600 hover:text-primary hover:bg-primary/10 disabled:opacity-40 transition-all"
+            >
+              First
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary disabled:opacity-40 transition-all"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <div className="flex items-center gap-1 mx-2">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum: number;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`h-9 min-w-[36px] px-3 rounded-full text-sm font-medium transition-all duration-200 ${
+                      currentPage === pageNum
+                        ? 'bg-primary text-white shadow-md shadow-primary/30 scale-105'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
             </div>
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary disabled:opacity-40 transition-all"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+              className="h-9 px-3 text-xs font-medium text-gray-600 hover:text-primary hover:bg-primary/10 disabled:opacity-40 transition-all"
+            >
+              Last
+            </Button>
           </div>
         )}
       </CardContent>
