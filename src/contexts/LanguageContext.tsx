@@ -133,6 +133,9 @@ const translations = {
     total: 'الإجمالي',
     // Email update
     emailUpdatedSuccessfully: 'تم تحديث البريد الإلكتروني بنجاح',
+    // Pagination
+    first: 'الأول',
+    last: 'الأخير',
   },
   en: {
     home: 'Home',
@@ -256,6 +259,9 @@ const translations = {
     total: 'total',
     // Email update
     emailUpdatedSuccessfully: 'Email updated successfully',
+    // Pagination
+    first: 'First',
+    last: 'Last',
   },
 };
 
