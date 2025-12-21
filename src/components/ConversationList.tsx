@@ -39,7 +39,7 @@ export const ConversationList = ({
   const safeConversations = conversations || [];
   
   // Parse timestamp safely and consistently across browsers.
-  // If backend sends "YYYY-MM-DD HH:mm" (no timezone), treat it as LOCAL time.
+  // If backend sends "YYYY-MM-DD HH:mm" (no timezone), assume it's UTC then display in user's local time.
   const parseTimestamp = (timestamp: string): Date => {
     const m = timestamp.match(
       /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/
@@ -48,12 +48,14 @@ export const ConversationList = ({
     if (m) {
       const [, y, mo, d, h, mi, s] = m;
       return new Date(
-        Number(y),
-        Number(mo) - 1,
-        Number(d),
-        Number(h),
-        Number(mi),
-        s ? Number(s) : 0
+        Date.UTC(
+          Number(y),
+          Number(mo) - 1,
+          Number(d),
+          Number(h),
+          Number(mi),
+          s ? Number(s) : 0
+        )
       );
     }
 
