@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, MessageCircle, Clock, TrendingUp, Inbox } from "lucide-react";
+import { Search, MessageCircle, Clock, Inbox, ChevronLeft, ChevronRight } from "lucide-react";
 import { ConversationMessage } from "@/data/mockData";
 import { useUniqueConversations } from "@/hooks/useConversations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
 interface ConversationListProps {
   onConversationSelect: (conversationId: string) => void;
@@ -33,6 +34,8 @@ export const ConversationList = ({
 }: ConversationListProps) => {
   const { t, language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
   const { data: conversations = [], isLoading } = useUniqueConversations();
   
   // Fallback to ensure we always have data
@@ -71,6 +74,17 @@ export const ConversationList = ({
       conv.outbound.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => parseTimestamp(b.timestamp).getTime() - parseTimestamp(a.timestamp).getTime());
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredConversations.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedConversations = filteredConversations.slice(startIndex, startIndex + itemsPerPage);
+
+  // Reset to page 1 when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
 
   const formatTimestamp = (timestamp: string) => {
     const date = parseTimestamp(timestamp);
@@ -123,7 +137,7 @@ export const ConversationList = ({
           <Input
             placeholder={t('searchConversations')}
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10 bg-white border-gray-200 focus:ring-2 focus:ring-primary/20 transition-all text-sm md:text-base"
           />
         </div>
@@ -138,7 +152,7 @@ export const ConversationList = ({
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {filteredConversations.map((conversation, index) => (
+              {paginatedConversations.map((conversation, index) => (
                 <div
                   key={conversation.conversation_id}
                   onClick={() => {
@@ -210,6 +224,38 @@ export const ConversationList = ({
             </div>
           )}
         </div>
+        
+        {/* Pagination */}
+        {!isLoading && totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
+            <span className="text-xs text-gray-500">
+              {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredConversations.length)} of {filteredConversations.length}
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="h-8 px-2"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm font-medium text-gray-700 min-w-[80px] text-center">
+                {currentPage} / {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="h-8 px-2"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
