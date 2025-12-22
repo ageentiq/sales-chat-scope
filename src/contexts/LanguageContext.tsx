@@ -136,6 +136,10 @@ const translations = {
     // Pagination
     first: 'الأول',
     last: 'الأخير',
+    // Dual statistics
+    all: 'الكل',
+    active: 'النشط',
+    activeConversationsTooltip: 'المحادثات النشطة هي المحادثات التي تحتوي على رسالتين أو أكثر (تفاعل العميل)',
   },
   en: {
     home: 'Home',
@@ -262,6 +266,10 @@ const translations = {
     // Pagination
     first: 'First',
     last: 'Last',
+    // Dual statistics
+    all: 'All',
+    active: 'Active',
+    activeConversationsTooltip: 'Active conversations are those with 2+ messages (customer engagement)',
   },
 };
 

@@ -20,6 +20,23 @@ const Dashboard = () => {
   const totalConversations = safeUniqueConversations.length;
   const totalMessages = safeAllConversations.length;
   
+  // Calculate conversation message counts for active filtering
+  const conversationMessageCounts: Record<string, number> = {};
+  safeAllConversations.forEach(message => {
+    if (!conversationMessageCounts[message.conversation_id]) {
+      conversationMessageCounts[message.conversation_id] = 0;
+    }
+    conversationMessageCounts[message.conversation_id]++;
+  });
+  
+  // Active conversations = conversations with 2+ messages
+  const activeConversationIds = new Set(
+    Object.entries(conversationMessageCounts)
+      .filter(([_, count]) => count >= 2)
+      .map(([id]) => id)
+  );
+  const totalActiveConversations = activeConversationIds.size;
+  
   // Calculate Avg Messages per Conversation with trend analysis
   const calculateAvgMessagesPerConversation = () => {
     if (totalConversations === 0) {
@@ -105,8 +122,10 @@ const Dashboard = () => {
   }).length;
 
   // Calculate average response time based on time between messages in a conversation
+  // Returns both all conversations and active-only (2+ messages) stats
   const calculateAvgResponseTime = () => {
     const responseTimes: number[] = [];
+    const activeResponseTimes: number[] = [];
     
     // Group messages by conversation_id
     const conversationGroups: Record<string, typeof safeAllConversations> = {};
@@ -118,7 +137,9 @@ const Dashboard = () => {
     });
 
     // For each conversation, calculate response times between consecutive messages
-    Object.values(conversationGroups).forEach(messages => {
+    Object.entries(conversationGroups).forEach(([convId, messages]) => {
+      const isActive = activeConversationIds.has(convId);
+      
       // Sort messages by timestamp
       const sortedMessages = messages.sort((a, b) => 
         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
@@ -135,27 +156,33 @@ const Dashboard = () => {
         // Only include reasonable response times (> 0 and < 24 hours)
         if (minutesDiff > 0 && minutesDiff < 1440) {
           responseTimes.push(minutesDiff);
+          if (isActive) {
+            activeResponseTimes.push(minutesDiff);
+          }
         }
       }
     });
 
-    if (responseTimes.length === 0) {
-      return { avgTime: 0, avgTimeFormatted: "0 min", trend: 0 };
-    }
+    const formatTime = (avgMinutes: number): string => {
+      if (avgMinutes === 0) return "0 min";
+      if (avgMinutes < 1) {
+        return `${Math.round(avgMinutes * 60)} sec`;
+      } else if (avgMinutes < 60) {
+        return `${avgMinutes.toFixed(1)} min`;
+      } else {
+        const hours = Math.floor(avgMinutes / 60);
+        const mins = Math.round(avgMinutes % 60);
+        return `${hours}h ${mins}m`;
+      }
+    };
 
-    const avgMinutes = responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length;
-
-    // Format the time
-    let avgTimeFormatted: string;
-    if (avgMinutes < 1) {
-      avgTimeFormatted = `${Math.round(avgMinutes * 60)} sec`;
-    } else if (avgMinutes < 60) {
-      avgTimeFormatted = `${avgMinutes.toFixed(1)} min`;
-    } else {
-      const hours = Math.floor(avgMinutes / 60);
-      const mins = Math.round(avgMinutes % 60);
-      avgTimeFormatted = `${hours}h ${mins}m`;
-    }
+    const avgMinutes = responseTimes.length > 0 
+      ? responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length 
+      : 0;
+    
+    const activeAvgMinutes = activeResponseTimes.length > 0
+      ? activeResponseTimes.reduce((sum, time) => sum + time, 0) / activeResponseTimes.length
+      : 0;
 
     // Calculate trend: compare last 7 days vs previous 7 days
     const now = new Date();
@@ -201,10 +228,20 @@ const Dashboard = () => {
       ? ((lastWeekAvg - prevWeekAvg) / prevWeekAvg) * 100 
       : 0;
 
-    return { avgTime: avgMinutes, avgTimeFormatted, trend };
+    return { 
+      avgTime: avgMinutes, 
+      avgTimeFormatted: formatTime(avgMinutes),
+      activeAvgTime: activeAvgMinutes,
+      activeAvgTimeFormatted: formatTime(activeAvgMinutes),
+      trend 
+    };
   };
 
-  const { avgTimeFormatted: avgResponseTime, trend: avgResponseTimeTrend } = calculateAvgResponseTime();
+  const { 
+    avgTimeFormatted: avgResponseTime, 
+    activeAvgTimeFormatted: activeAvgResponseTime,
+    trend: avgResponseTimeTrend 
+  } = calculateAvgResponseTime();
   const avgResponseTimeTrendFormatted = avgResponseTimeTrend !== 0
     ? `${Math.abs(avgResponseTimeTrend).toFixed(1)}%`
     : "0%";
@@ -213,17 +250,10 @@ const Dashboard = () => {
   const avgResponseTimeTrendText = avgResponseTimeTrend <= 0 ? 'fasterThanLastWeek' : 'slowerThanLastWeek';
   
   // Calculate Response Rate: percentage of conversations where the customer replied (has 2+ messages)
+  // For "all": uses all conversations as denominator
+  // For "active": this is always 100% by definition, so we show the count instead
   const calculateResponseRate = () => {
-    if (totalConversations === 0) return { rate: 0, trend: 0 };
-
-    // Group messages by conversation_id and count messages per conversation
-    const conversationMessageCounts: Record<string, number> = {};
-    safeAllConversations.forEach(message => {
-      if (!conversationMessageCounts[message.conversation_id]) {
-        conversationMessageCounts[message.conversation_id] = 0;
-      }
-      conversationMessageCounts[message.conversation_id]++;
-    });
+    if (totalConversations === 0) return { rate: 0, activeCount: 0, trend: 0 };
 
     // Count conversations with at least 2 messages (customer responded)
     const conversationsWithResponse = Object.values(conversationMessageCounts)
@@ -266,7 +296,7 @@ const Dashboard = () => {
 
     const trend = yesterdayRate > 0 ? todayRate - yesterdayRate : 0;
 
-    return { rate: currentRate, trend };
+    return { rate: currentRate, activeCount: conversationsWithResponse, trend };
   };
 
   const { rate: responseRateValue, trend: responseRateTrend } = calculateResponseRate();
@@ -304,7 +334,7 @@ const Dashboard = () => {
       <main className="px-4 md:px-8 py-4 md:py-6">
         {/* Metrics Grid */}
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-4 md:mb-6">
-          {/* Total Conversations Card */}
+          {/* Total Conversations Card - Dual Stats */}
           <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 md:px-6 pt-3 md:pt-6">
               <div className="flex items-center gap-1 md:gap-2">
@@ -314,14 +344,27 @@ const Dashboard = () => {
                     <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block" />
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs">
-                    <p>{t('totalConversationsTooltip')}</p>
+                    <p>{t('activeConversationsTooltip')}</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
               <Users className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
             </CardHeader>
             <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-              <div className="text-2xl md:text-3xl font-bold text-gray-900">{totalConversations}</div>
+              <div className="flex items-baseline gap-3">
+                <div className="flex flex-col">
+                  <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">{t('all')}</span>
+                  <span className="text-xl md:text-2xl font-bold text-gray-900">{totalConversations}</span>
+                </div>
+                <div className="w-px h-8 bg-gray-200"></div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] md:text-xs text-primary uppercase tracking-wide font-medium">{t('active')}</span>
+                  <span className="text-xl md:text-2xl font-bold text-primary">{totalActiveConversations}</span>
+                </div>
+              </div>
+              <p className="text-[10px] md:text-xs text-gray-500 mt-2">
+                {((totalActiveConversations / totalConversations) * 100 || 0).toFixed(0)}% {t('responseRate').toLowerCase()}
+              </p>
             </CardContent>
           </Card>
 
@@ -425,7 +468,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Average Response Time */}
+          {/* Average Response Time - Dual Stats */}
           <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 md:px-6 pt-3 md:pt-6">
               <div className="flex items-center gap-1 md:gap-2">
@@ -442,16 +485,26 @@ const Dashboard = () => {
               <Clock className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
             </CardHeader>
             <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-              <div className="text-2xl md:text-3xl font-bold text-gray-900">{avgResponseTime}</div>
+              <div className="flex items-baseline gap-3">
+                <div className="flex flex-col">
+                  <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">{t('all')}</span>
+                  <span className="text-lg md:text-xl font-bold text-gray-900">{avgResponseTime}</span>
+                </div>
+                <div className="w-px h-8 bg-gray-200"></div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] md:text-xs text-primary uppercase tracking-wide font-medium">{t('active')}</span>
+                  <span className="text-lg md:text-xl font-bold text-primary">{activeAvgResponseTime}</span>
+                </div>
+              </div>
               {avgResponseTimeTrend !== 0 && (
-                <p className={`text-[10px] md:text-xs ${avgResponseTimeTrendColor} mt-1`}>
+                <p className={`text-[10px] md:text-xs ${avgResponseTimeTrendColor} mt-2`}>
                   {avgResponseTimeTrendIcon} {avgResponseTimeTrendFormatted} {t(avgResponseTimeTrendText)}
                 </p>
               )}
             </CardContent>
           </Card>
 
-          {/* Response Rate */}
+          {/* Response Rate - Dual Stats */}
           <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow col-span-2 lg:col-span-1">
             <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 md:px-6 pt-3 md:pt-6">
               <div className="flex items-center gap-1 md:gap-2">
@@ -468,8 +521,18 @@ const Dashboard = () => {
               <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
             </CardHeader>
             <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-              <div className="text-2xl md:text-3xl font-bold text-gray-900">{responseRate}</div>
-              <p className={`text-[10px] md:text-xs ${responseRateTrendColor} mt-1`}>
+              <div className="flex items-baseline gap-3">
+                <div className="flex flex-col">
+                  <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">{t('all')}</span>
+                  <span className="text-xl md:text-2xl font-bold text-gray-900">{responseRate}</span>
+                </div>
+                <div className="w-px h-8 bg-gray-200"></div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] md:text-xs text-primary uppercase tracking-wide font-medium">{t('active')}</span>
+                  <span className="text-xl md:text-2xl font-bold text-primary">{totalActiveConversations}</span>
+                </div>
+              </div>
+              <p className={`text-[10px] md:text-xs ${responseRateTrendColor} mt-2`}>
                 {responseRateTrendFormatted} {t('fromYesterday')}
               </p>
             </CardContent>
