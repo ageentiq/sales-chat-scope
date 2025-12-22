@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUniqueConversations, useConversations, useTransitionStats } from "@/hooks/useConversations";
-import { MessageCircle, MessagesSquare, Users, TrendingUp, Clock, Activity, Info, PhoneOff, Star, ThumbsDown, Briefcase } from "lucide-react";
+import { MessageCircle, MessagesSquare, Users, TrendingUp, Clock, Activity, PhoneOff, Star, ThumbsDown, Briefcase } from "lucide-react";
 import { ConversationsChart } from "@/components/ConversationsChart";
 
 const Dashboard = () => {
@@ -347,20 +347,17 @@ const Dashboard = () => {
             {/* Total Conversations Card - Dual Stats */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <div className="flex items-center gap-1 md:gap-2">
-                  <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('totalConversations')}</CardTitle>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>{t('activeConversationsTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors">
-                  <Users className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                </div>
+                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('totalConversations')}</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
+                      <Users className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{t('activeConversationsTooltip')}</p>
+                  </TooltipContent>
+                </Tooltip>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 <div className="flex items-end gap-4">
@@ -386,20 +383,17 @@ const Dashboard = () => {
             {/* Total Messages Card */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <div className="flex items-center gap-1 md:gap-2">
-                  <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('totalMessages')}</CardTitle>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>{t('totalMessagesTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors">
-                  <MessagesSquare className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                </div>
+                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('totalMessages')}</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
+                      <MessagesSquare className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{t('totalMessagesTooltip')}</p>
+                  </TooltipContent>
+                </Tooltip>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{totalMessages}</div>
@@ -409,20 +403,17 @@ const Dashboard = () => {
             {/* Avg Messages per Conversation Card */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <div className="flex items-center gap-1 md:gap-2">
-                  <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('avgMessagesPerConversation')}</CardTitle>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>{t('avgMessagesPerConversationTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors">
-                  <MessageCircle className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                </div>
+                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('avgMessagesPerConversation')}</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
+                      <MessageCircle className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{t('avgMessagesPerConversationTooltip')}</p>
+                  </TooltipContent>
+                </Tooltip>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{avgMessagesPerConversation}</div>
@@ -445,20 +436,17 @@ const Dashboard = () => {
             {/* Conversations Today Card - Dual Stats */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <div className="flex items-center gap-1 md:gap-2">
-                  <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('conversationsToday')}</CardTitle>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>{t('conversationsTodayTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors">
-                  <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                </div>
+                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('conversationsToday')}</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
+                      <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{t('conversationsTodayTooltip')}</p>
+                  </TooltipContent>
+                </Tooltip>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 <div className="flex items-end gap-4">
@@ -481,20 +469,17 @@ const Dashboard = () => {
             {/* Conversations Last 7 Days */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <div className="flex items-center gap-1 md:gap-2">
-                  <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('conversationsLastSevenDays')}</CardTitle>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>{t('activeLastSevenDaysTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors">
-                  <Activity className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                </div>
+                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('conversationsLastSevenDays')}</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
+                      <Activity className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{t('activeLastSevenDaysTooltip')}</p>
+                  </TooltipContent>
+                </Tooltip>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{conversationsLastSevenDays}</div>
@@ -510,20 +495,17 @@ const Dashboard = () => {
             {/* Average Response Time */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <div className="flex items-center gap-1 md:gap-2">
-                  <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('avgResponseTimeFull')}</CardTitle>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>{t('avgResponseTimeTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors">
-                  <Clock className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                </div>
+                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('avgResponseTimeFull')}</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
+                      <Clock className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{t('avgResponseTimeTooltip')}</p>
+                  </TooltipContent>
+                </Tooltip>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{avgResponseTime}</div>
@@ -543,20 +525,17 @@ const Dashboard = () => {
             {/* Response Rate */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group col-span-2 lg:col-span-1">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <div className="flex items-center gap-1 md:gap-2">
-                  <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('responseRate')}</CardTitle>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>{t('responseRateTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors">
-                  <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                </div>
+                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('responseRate')}</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
+                      <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{t('responseRateTooltip')}</p>
+                  </TooltipContent>
+                </Tooltip>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{responseRate}</div>
