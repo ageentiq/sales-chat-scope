@@ -140,6 +140,7 @@ const translations = {
     all: 'الكل',
     active: 'النشط',
     activeConversationsTooltip: 'المحادثات النشطة هي المحادثات التي تحتوي على رسالتين أو أكثر (تفاعل العميل)',
+    ofTotal: 'من الإجمالي',
   },
   en: {
     home: 'Home',
@@ -270,6 +271,7 @@ const translations = {
     all: 'All',
     active: 'Active',
     activeConversationsTooltip: 'Active conversations are those with 2+ messages (customer engagement)',
+    ofTotal: 'of total',
   },
 };
 
