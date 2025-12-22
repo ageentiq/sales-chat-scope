@@ -348,7 +348,7 @@ const Dashboard = () => {
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
                 <div className="flex items-center gap-1 md:gap-2">
-                  <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">{t('totalConversations')}</CardTitle>
+                  <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('totalConversations')}</CardTitle>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
@@ -366,16 +366,16 @@ const Dashboard = () => {
                 <div className="flex items-end gap-4">
                   <div className="flex flex-col">
                     <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wider font-medium">{t('all')}</span>
-                    <span className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{totalConversations}</span>
+                    <span className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{totalConversations}</span>
                   </div>
                   <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-200 to-transparent"></div>
                   <div className="flex flex-col">
                     <span className="text-[10px] md:text-xs text-primary uppercase tracking-wider font-semibold">{t('active')}</span>
-                    <span className="text-2xl md:text-3xl font-bold text-primary tabular-nums">{totalActiveConversations}</span>
+                    <span className="text-xl md:text-3xl font-bold text-primary tabular-nums">{totalActiveConversations}</span>
                   </div>
                 </div>
                 <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <p className="text-[11px] md:text-xs text-gray-500 flex items-center gap-1">
                     <span className="inline-block w-2 h-2 rounded-full bg-primary/20"></span>
                     {((totalActiveConversations / totalConversations) * 100 || 0).toFixed(0)}% {t('responseRate').toLowerCase()}
                   </p>
@@ -387,7 +387,7 @@ const Dashboard = () => {
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
                 <div className="flex items-center gap-1 md:gap-2">
-                  <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">{t('totalMessages')}</CardTitle>
+                  <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('totalMessages')}</CardTitle>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
@@ -402,7 +402,7 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{totalMessages}</div>
+                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{totalMessages}</div>
               </CardContent>
             </Card>
 
@@ -410,7 +410,7 @@ const Dashboard = () => {
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
                 <div className="flex items-center gap-1 md:gap-2">
-                  <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">{t('avgMessagesPerConversation')}</CardTitle>
+                  <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('avgMessagesPerConversation')}</CardTitle>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
@@ -425,9 +425,9 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{avgMessagesPerConversation}</div>
+                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{avgMessagesPerConversation}</div>
                 {avgMessagesTrend !== 0 && (
-                  <p className={`text-xs ${avgMessagesTrendColor} mt-2 flex items-center gap-1`}>
+                  <p className={`text-[11px] md:text-xs ${avgMessagesTrendColor} mt-2 flex items-center gap-1`}>
                     <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${avgMessagesTrend >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
                       {avgMessagesTrendIcon} {avgMessagesTrendFormatted}
                     </span>
@@ -446,7 +446,7 @@ const Dashboard = () => {
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
                 <div className="flex items-center gap-1 md:gap-2">
-                  <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">{t('conversationsToday')}</CardTitle>
+                  <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('conversationsToday')}</CardTitle>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
@@ -464,12 +464,12 @@ const Dashboard = () => {
                 <div className="flex items-end gap-4">
                   <div className="flex flex-col">
                     <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wider font-medium">{t('all')}</span>
-                    <span className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{conversationsToday}</span>
+                    <span className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{conversationsToday}</span>
                   </div>
                   <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-200 to-transparent"></div>
                   <div className="flex flex-col">
                     <span className="text-[10px] md:text-xs text-primary uppercase tracking-wider font-semibold">{t('active')}</span>
-                    <span className="text-2xl md:text-3xl font-bold text-primary tabular-nums">{activeConversationsToday}</span>
+                    <span className="text-xl md:text-3xl font-bold text-primary tabular-nums">{activeConversationsToday}</span>
                   </div>
                 </div>
               </CardContent>
@@ -482,7 +482,7 @@ const Dashboard = () => {
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
                 <div className="flex items-center gap-1 md:gap-2">
-                  <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">{t('conversationsLastSevenDays')}</CardTitle>
+                  <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('conversationsLastSevenDays')}</CardTitle>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
@@ -497,9 +497,9 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{conversationsLastSevenDays}</div>
+                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{conversationsLastSevenDays}</div>
                 <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <p className="text-[11px] md:text-xs text-gray-500 flex items-center gap-1">
                     <span className="inline-block w-2 h-2 rounded-full bg-gray-300"></span>
                     {((conversationsLastSevenDays / totalConversations) * 100 || 0).toFixed(0)}% {t('ofTotal')}
                   </p>
@@ -507,11 +507,11 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Average Response Time - Dual Stats */}
+            {/* Average Response Time */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
                 <div className="flex items-center gap-1 md:gap-2">
-                  <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">{t('avgResponseTimeFull')}</CardTitle>
+                  <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('avgResponseTimeFull')}</CardTitle>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
@@ -526,20 +526,10 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="flex items-end gap-4">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wider font-medium">{t('all')}</span>
-                    <span className="text-xl md:text-2xl font-bold text-gray-900">{avgResponseTime}</span>
-                  </div>
-                  <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-200 to-transparent"></div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] md:text-xs text-primary uppercase tracking-wider font-semibold">{t('active')}</span>
-                    <span className="text-xl md:text-2xl font-bold text-primary">{activeAvgResponseTime}</span>
-                  </div>
-                </div>
+                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{avgResponseTime}</div>
                 {avgResponseTimeTrend !== 0 && (
                   <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className={`text-xs ${avgResponseTimeTrendColor} flex items-center gap-1`}>
+                    <p className={`text-[11px] md:text-xs ${avgResponseTimeTrendColor} flex items-center gap-1`}>
                       <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${avgResponseTimeTrend <= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
                         {avgResponseTimeTrendIcon} {avgResponseTimeTrendFormatted}
                       </span>
@@ -554,7 +544,7 @@ const Dashboard = () => {
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group col-span-2 lg:col-span-1">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
                 <div className="flex items-center gap-1 md:gap-2">
-                  <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">{t('responseRate')}</CardTitle>
+                  <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('responseRate')}</CardTitle>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
@@ -569,9 +559,9 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{responseRate}</div>
+                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{responseRate}</div>
                 <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className={`text-xs ${responseRateTrendColor} flex items-center gap-1`}>
+                  <p className={`text-[11px] md:text-xs ${responseRateTrendColor} flex items-center gap-1`}>
                     <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${responseRateTrend >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
                       {responseRateTrendFormatted}
                     </span>
@@ -587,7 +577,7 @@ const Dashboard = () => {
             {/* No Response */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">
+                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">
                   <span className="block">No Response</span>
                   <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">لم يتم الرد</span>
                 </CardTitle>
@@ -596,10 +586,10 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.noResponse || 0}</div>
+                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.noResponse || 0}</div>
                 {transitionStats?.total ? (
                   <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <p className="text-[11px] md:text-xs text-gray-500 flex items-center gap-1">
                       <span className="inline-block w-2 h-2 rounded-full bg-red-200"></span>
                       {((transitionStats.noResponse / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
                     </p>
@@ -611,7 +601,7 @@ const Dashboard = () => {
             {/* Future Interest */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">
+                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">
                   <span className="block">Future Interest</span>
                   <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">مهتم بالمراحل القادمة</span>
                 </CardTitle>
@@ -620,10 +610,10 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.futureInterest || 0}</div>
+                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.futureInterest || 0}</div>
                 {transitionStats?.total ? (
                   <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <p className="text-[11px] md:text-xs text-gray-500 flex items-center gap-1">
                       <span className="inline-block w-2 h-2 rounded-full bg-yellow-300"></span>
                       {((transitionStats.futureInterest / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
                     </p>
@@ -635,7 +625,7 @@ const Dashboard = () => {
             {/* Not Interested */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">
+                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">
                   <span className="block">Not Interested</span>
                   <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">غير مهتم</span>
                 </CardTitle>
@@ -644,10 +634,10 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.notInterested || 0}</div>
+                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.notInterested || 0}</div>
                 {transitionStats?.total ? (
                   <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <p className="text-[11px] md:text-xs text-gray-500 flex items-center gap-1">
                       <span className="inline-block w-2 h-2 rounded-full bg-gray-300"></span>
                       {((transitionStats.notInterested / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
                     </p>
@@ -659,7 +649,7 @@ const Dashboard = () => {
             {/* Create Prospect */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">
+                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">
                   <span className="block">Create Prospect</span>
                   <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">إنشاء صفقة</span>
                 </CardTitle>
@@ -668,10 +658,10 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.createProspect || 0}</div>
+                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.createProspect || 0}</div>
                 {transitionStats?.total ? (
                   <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <p className="text-[11px] md:text-xs text-gray-500 flex items-center gap-1">
                       <span className="inline-block w-2 h-2 rounded-full bg-green-300"></span>
                       {((transitionStats.createProspect / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
                     </p>
