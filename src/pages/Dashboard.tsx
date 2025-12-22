@@ -330,319 +330,364 @@ const Dashboard = () => {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200">
+        <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
           <div className="px-4 md:px-8 py-4 md:py-6">
             <div>
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">{t('salesDashboard')}</h1>
-            <p className="text-sm md:text-base text-gray-600 mt-1">{t('trackAndAnalyze')}</p>
+              <h1 className="text-xl md:text-3xl font-bold text-gray-900 tracking-tight">{t('salesDashboard')}</h1>
+              <p className="text-sm md:text-base text-gray-500 mt-1">{t('trackAndAnalyze')}</p>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="px-4 md:px-8 py-4 md:py-6">
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-4 md:mb-6">
-          {/* Total Conversations Card - Dual Stats */}
-          <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 md:px-6 pt-3 md:pt-6">
-              <div className="flex items-center gap-1 md:gap-2">
-                <CardTitle className="text-xs md:text-sm font-medium text-gray-600">{t('totalConversations')}</CardTitle>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{t('activeConversationsTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <Users className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
-            </CardHeader>
-            <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-              <div className="flex items-baseline gap-3">
-                <div className="flex flex-col">
-                  <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">{t('all')}</span>
-                  <span className="text-xl md:text-2xl font-bold text-gray-900">{totalConversations}</span>
+        <main className="px-4 md:px-8 py-6 md:py-8 space-y-6">
+          {/* Main Metrics Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {/* Total Conversations Card - Dual Stats */}
+            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
+                <div className="flex items-center gap-1 md:gap-2">
+                  <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">{t('totalConversations')}</CardTitle>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{t('activeConversationsTooltip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
-                <div className="w-px h-8 bg-gray-200"></div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] md:text-xs text-primary uppercase tracking-wide font-medium">{t('active')}</span>
-                  <span className="text-xl md:text-2xl font-bold text-primary">{totalActiveConversations}</span>
+                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors">
+                  <Users className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
                 </div>
-              </div>
-              <p className="text-[10px] md:text-xs text-gray-500 mt-2">
-                {((totalActiveConversations / totalConversations) * 100 || 0).toFixed(0)}% {t('responseRate').toLowerCase()}
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Total Messages Card */}
-          <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 md:px-6 pt-3 md:pt-6">
-              <div className="flex items-center gap-1 md:gap-2">
-                <CardTitle className="text-xs md:text-sm font-medium text-gray-600">{t('totalMessages')}</CardTitle>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{t('totalMessagesTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <MessagesSquare className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
-            </CardHeader>
-            <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-              <div className="text-2xl md:text-3xl font-bold text-gray-900">{totalMessages}</div>
-            </CardContent>
-          </Card>
-
-          {/* Avg Messages per Conversation Card */}
-          <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 md:px-6 pt-3 md:pt-6">
-              <div className="flex items-center gap-1 md:gap-2">
-                <CardTitle className="text-xs md:text-sm font-medium text-gray-600">{t('avgMessagesPerConversation')}</CardTitle>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{t('avgMessagesPerConversationTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <MessageCircle className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
-            </CardHeader>
-            <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-              <div className="text-2xl md:text-3xl font-bold text-gray-900">{avgMessagesPerConversation}</div>
-              {avgMessagesTrend !== 0 && (
-                <p className={`text-[10px] md:text-xs ${avgMessagesTrendColor} mt-1`}>
-                  {avgMessagesTrendIcon} {avgMessagesTrendFormatted} {t(avgMessagesTrendText)}
-                </p>
-              )}
-              {lastWeekMsgAvg > 0 && prevWeekMsgAvg > 0 && (
-                <p className="text-[10px] md:text-xs text-gray-500 mt-1 hidden md:block">
-                  {t('lastWeek')}: {lastWeekMsgAvg.toFixed(1)} | {t('prevWeek')}: {prevWeekMsgAvg.toFixed(1)}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Conversations Today Card - Dual Stats */}
-          <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 md:px-6 pt-3 md:pt-6">
-              <div className="flex items-center gap-1 md:gap-2">
-                <CardTitle className="text-xs md:text-sm font-medium text-gray-600">{t('conversationsToday')}</CardTitle>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{t('conversationsTodayTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
-            </CardHeader>
-            <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-              <div className="flex items-baseline gap-3">
-                <div className="flex flex-col">
-                  <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">{t('all')}</span>
-                  <span className="text-xl md:text-2xl font-bold text-gray-900">{conversationsToday}</span>
+              </CardHeader>
+              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+                <div className="flex items-end gap-4">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wider font-medium">{t('all')}</span>
+                    <span className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{totalConversations}</span>
+                  </div>
+                  <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-200 to-transparent"></div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] md:text-xs text-primary uppercase tracking-wider font-semibold">{t('active')}</span>
+                    <span className="text-2xl md:text-3xl font-bold text-primary tabular-nums">{totalActiveConversations}</span>
+                  </div>
                 </div>
-                <div className="w-px h-8 bg-gray-200"></div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] md:text-xs text-primary uppercase tracking-wide font-medium">{t('active')}</span>
-                  <span className="text-xl md:text-2xl font-bold text-primary">{activeConversationsToday}</span>
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <span className="inline-block w-2 h-2 rounded-full bg-primary/20"></span>
+                    {((totalActiveConversations / totalConversations) * 100 || 0).toFixed(0)}% {t('responseRate').toLowerCase()}
+                  </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
 
-        {/* Additional Statistics Row */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 mb-4 md:mb-6">
-          {/* Conversations Last 7 Days */}
-          <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 md:px-6 pt-3 md:pt-6">
-              <div className="flex items-center gap-1 md:gap-2">
-                <CardTitle className="text-xs md:text-sm font-medium text-gray-600">{t('conversationsLastSevenDays')}</CardTitle>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{t('activeLastSevenDaysTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <Activity className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
-            </CardHeader>
-            <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-              <div className="text-2xl md:text-3xl font-bold text-gray-900">{conversationsLastSevenDays}</div>
-              <p className="text-[10px] md:text-xs text-gray-500 mt-1">
-                {((conversationsLastSevenDays / totalConversations) * 100 || 0).toFixed(0)}% {t('ofTotal')}
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Average Response Time - Dual Stats */}
-          <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 md:px-6 pt-3 md:pt-6">
-              <div className="flex items-center gap-1 md:gap-2">
-                <CardTitle className="text-xs md:text-sm font-medium text-gray-600">{t('avgResponseTimeFull')}</CardTitle>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{t('avgResponseTimeTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <Clock className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
-            </CardHeader>
-            <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-              <div className="flex items-baseline gap-3">
-                <div className="flex flex-col">
-                  <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">{t('all')}</span>
-                  <span className="text-lg md:text-xl font-bold text-gray-900">{avgResponseTime}</span>
+            {/* Total Messages Card */}
+            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
+                <div className="flex items-center gap-1 md:gap-2">
+                  <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">{t('totalMessages')}</CardTitle>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{t('totalMessagesTooltip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
-                <div className="w-px h-8 bg-gray-200"></div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] md:text-xs text-primary uppercase tracking-wide font-medium">{t('active')}</span>
-                  <span className="text-lg md:text-xl font-bold text-primary">{activeAvgResponseTime}</span>
+                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors">
+                  <MessagesSquare className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
                 </div>
-              </div>
-              {avgResponseTimeTrend !== 0 && (
-                <p className={`text-[10px] md:text-xs ${avgResponseTimeTrendColor} mt-2`}>
-                  {avgResponseTimeTrendIcon} {avgResponseTimeTrendFormatted} {t(avgResponseTimeTrendText)}
-                </p>
-              )}
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{totalMessages}</div>
+              </CardContent>
+            </Card>
 
-          {/* Response Rate - Dual Stats */}
-          <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow col-span-2 lg:col-span-1">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 md:px-6 pt-3 md:pt-6">
-              <div className="flex items-center gap-1 md:gap-2">
-                <CardTitle className="text-xs md:text-sm font-medium text-gray-600">{t('responseRate')}</CardTitle>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{t('responseRateTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
-            </CardHeader>
-            <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-              <div className="flex items-baseline gap-3">
-                <div className="flex flex-col">
-                  <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">{t('all')}</span>
-                  <span className="text-xl md:text-2xl font-bold text-gray-900">{responseRate}</span>
+            {/* Avg Messages per Conversation Card */}
+            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
+                <div className="flex items-center gap-1 md:gap-2">
+                  <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">{t('avgMessagesPerConversation')}</CardTitle>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{t('avgMessagesPerConversationTooltip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
-                <div className="w-px h-8 bg-gray-200"></div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] md:text-xs text-primary uppercase tracking-wide font-medium">{t('active')}</span>
-                  <span className="text-xl md:text-2xl font-bold text-primary">100%</span>
+                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors">
+                  <MessageCircle className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
                 </div>
-              </div>
-              <p className={`text-[10px] md:text-xs ${responseRateTrendColor} mt-2`}>
-                {responseRateTrendFormatted} {t('fromYesterday')}
-              </p>
+              </CardHeader>
+              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{avgMessagesPerConversation}</div>
+                {avgMessagesTrend !== 0 && (
+                  <p className={`text-xs ${avgMessagesTrendColor} mt-2 flex items-center gap-1`}>
+                    <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${avgMessagesTrend >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
+                      {avgMessagesTrendIcon} {avgMessagesTrendFormatted}
+                    </span>
+                    <span className="text-gray-500">{t(avgMessagesTrendText)}</span>
+                  </p>
+                )}
+                {lastWeekMsgAvg > 0 && prevWeekMsgAvg > 0 && (
+                  <p className="text-[10px] md:text-xs text-gray-400 mt-2 hidden md:block">
+                    {t('lastWeek')}: {lastWeekMsgAvg.toFixed(1)} | {t('prevWeek')}: {prevWeekMsgAvg.toFixed(1)}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Conversations Today Card - Dual Stats */}
+            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
+                <div className="flex items-center gap-1 md:gap-2">
+                  <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">{t('conversationsToday')}</CardTitle>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{t('conversationsTodayTooltip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors">
+                  <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                </div>
+              </CardHeader>
+              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+                <div className="flex items-end gap-4">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wider font-medium">{t('all')}</span>
+                    <span className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{conversationsToday}</span>
+                  </div>
+                  <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-200 to-transparent"></div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] md:text-xs text-primary uppercase tracking-wider font-semibold">{t('active')}</span>
+                    <span className="text-2xl md:text-3xl font-bold text-primary tabular-nums">{activeConversationsToday}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Secondary Statistics Row */}
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {/* Conversations Last 7 Days */}
+            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
+                <div className="flex items-center gap-1 md:gap-2">
+                  <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">{t('conversationsLastSevenDays')}</CardTitle>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{t('activeLastSevenDaysTooltip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors">
+                  <Activity className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                </div>
+              </CardHeader>
+              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{conversationsLastSevenDays}</div>
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <span className="inline-block w-2 h-2 rounded-full bg-gray-300"></span>
+                    {((conversationsLastSevenDays / totalConversations) * 100 || 0).toFixed(0)}% {t('ofTotal')}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Average Response Time - Dual Stats */}
+            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
+                <div className="flex items-center gap-1 md:gap-2">
+                  <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">{t('avgResponseTimeFull')}</CardTitle>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{t('avgResponseTimeTooltip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors">
+                  <Clock className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                </div>
+              </CardHeader>
+              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+                <div className="flex items-end gap-4">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wider font-medium">{t('all')}</span>
+                    <span className="text-xl md:text-2xl font-bold text-gray-900">{avgResponseTime}</span>
+                  </div>
+                  <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-200 to-transparent"></div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] md:text-xs text-primary uppercase tracking-wider font-semibold">{t('active')}</span>
+                    <span className="text-xl md:text-2xl font-bold text-primary">{activeAvgResponseTime}</span>
+                  </div>
+                </div>
+                {avgResponseTimeTrend !== 0 && (
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <p className={`text-xs ${avgResponseTimeTrendColor} flex items-center gap-1`}>
+                      <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${avgResponseTimeTrend <= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
+                        {avgResponseTimeTrendIcon} {avgResponseTimeTrendFormatted}
+                      </span>
+                      <span className="text-gray-500">{t(avgResponseTimeTrendText)}</span>
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Response Rate */}
+            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group col-span-2 lg:col-span-1">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
+                <div className="flex items-center gap-1 md:gap-2">
+                  <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">{t('responseRate')}</CardTitle>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block hover:text-primary transition-colors" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{t('responseRateTooltip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors">
+                  <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                </div>
+              </CardHeader>
+              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{responseRate}</div>
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <p className={`text-xs ${responseRateTrendColor} flex items-center gap-1`}>
+                    <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${responseRateTrend >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
+                      {responseRateTrendFormatted}
+                    </span>
+                    <span className="text-gray-500">{t('fromYesterday')}</span>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Transition Statistics */}
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {/* No Response */}
+            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
+                <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">
+                  <span className="block">No Response</span>
+                  <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">لم يتم الرد</span>
+                </CardTitle>
+                <div className="p-2 bg-red-50 rounded-lg">
+                  <PhoneOff className="h-4 w-4 md:h-5 md:w-5 text-red-400" />
+                </div>
+              </CardHeader>
+              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.noResponse || 0}</div>
+                {transitionStats?.total ? (
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <span className="inline-block w-2 h-2 rounded-full bg-red-200"></span>
+                      {((transitionStats.noResponse / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
+                    </p>
+                  </div>
+                ) : null}
+              </CardContent>
+            </Card>
+
+            {/* Future Interest */}
+            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
+                <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">
+                  <span className="block">Future Interest</span>
+                  <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">مهتم بالمراحل القادمة</span>
+                </CardTitle>
+                <div className="p-2 bg-yellow-50 rounded-lg">
+                  <Star className="h-4 w-4 md:h-5 md:w-5 text-yellow-500" />
+                </div>
+              </CardHeader>
+              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.futureInterest || 0}</div>
+                {transitionStats?.total ? (
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <span className="inline-block w-2 h-2 rounded-full bg-yellow-300"></span>
+                      {((transitionStats.futureInterest / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
+                    </p>
+                  </div>
+                ) : null}
+              </CardContent>
+            </Card>
+
+            {/* Not Interested */}
+            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
+                <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">
+                  <span className="block">Not Interested</span>
+                  <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">غير مهتم</span>
+                </CardTitle>
+                <div className="p-2 bg-gray-100 rounded-lg">
+                  <ThumbsDown className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
+                </div>
+              </CardHeader>
+              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.notInterested || 0}</div>
+                {transitionStats?.total ? (
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <span className="inline-block w-2 h-2 rounded-full bg-gray-300"></span>
+                      {((transitionStats.notInterested / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
+                    </p>
+                  </div>
+                ) : null}
+              </CardContent>
+            </Card>
+
+            {/* Create Prospect */}
+            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
+              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
+                <CardTitle className="text-xs md:text-sm font-semibold text-gray-700">
+                  <span className="block">Create Prospect</span>
+                  <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">إنشاء صفقة</span>
+                </CardTitle>
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <Briefcase className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
+                </div>
+              </CardHeader>
+              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.createProspect || 0}</div>
+                {transitionStats?.total ? (
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <span className="inline-block w-2 h-2 rounded-full bg-green-300"></span>
+                      {((transitionStats.createProspect / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
+                    </p>
+                  </div>
+                ) : null}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Chart */}
+          <Card className="bg-white border border-gray-100 shadow-sm rounded-xl overflow-hidden">
+            <CardContent className="p-4 md:p-6">
+              <ConversationsChart />
             </CardContent>
           </Card>
-        </div>
-
-        {/* Transition Statistics */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
-          {/* No Response */}
-          <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 md:px-6 pt-4 md:pt-6">
-              <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
-                <span className="block">No Response</span>
-                <span className="block text-[10px] md:text-xs text-gray-400">لم يتم الرد</span>
-              </CardTitle>
-              <PhoneOff className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
-            </CardHeader>
-            <CardContent className="px-3 md:px-6 pb-4 md:pb-6">
-              <div className="text-2xl md:text-3xl font-bold text-gray-900">{transitionStats?.noResponse || 0}</div>
-              {transitionStats?.total ? (
-                <p className="text-[10px] md:text-xs text-gray-500 mt-1">
-                  {((transitionStats.noResponse / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
-                </p>
-              ) : null}
-            </CardContent>
-          </Card>
-
-          {/* Future Interest */}
-          <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 md:px-6 pt-4 md:pt-6">
-              <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
-                <span className="block">Future Interest</span>
-                <span className="block text-[10px] md:text-xs text-gray-400">مهتم بالمراحل القادمة</span>
-              </CardTitle>
-              <Star className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
-            </CardHeader>
-            <CardContent className="px-3 md:px-6 pb-4 md:pb-6">
-              <div className="text-2xl md:text-3xl font-bold text-gray-900">{transitionStats?.futureInterest || 0}</div>
-              {transitionStats?.total ? (
-                <p className="text-[10px] md:text-xs text-gray-500 mt-1">
-                  {((transitionStats.futureInterest / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
-                </p>
-              ) : null}
-            </CardContent>
-          </Card>
-
-          {/* Not Interested */}
-          <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 md:px-6 pt-4 md:pt-6">
-              <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
-                <span className="block">Not Interested</span>
-                <span className="block text-[10px] md:text-xs text-gray-400">غير مهتم</span>
-              </CardTitle>
-              <ThumbsDown className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
-            </CardHeader>
-            <CardContent className="px-3 md:px-6 pb-4 md:pb-6">
-              <div className="text-2xl md:text-3xl font-bold text-gray-900">{transitionStats?.notInterested || 0}</div>
-              {transitionStats?.total ? (
-                <p className="text-[10px] md:text-xs text-gray-500 mt-1">
-                  {((transitionStats.notInterested / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
-                </p>
-              ) : null}
-            </CardContent>
-          </Card>
-
-          {/* Create Prospect */}
-          <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 md:px-6 pt-4 md:pt-6">
-              <CardTitle className="text-xs md:text-sm font-medium text-gray-600">
-                <span className="block">Create Prospect</span>
-                <span className="block text-[10px] md:text-xs text-gray-400">إنشاء صفقة</span>
-              </CardTitle>
-              <Briefcase className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
-            </CardHeader>
-            <CardContent className="px-3 md:px-6 pb-4 md:pb-6">
-              <div className="text-2xl md:text-3xl font-bold text-gray-900">{transitionStats?.createProspect || 0}</div>
-              {transitionStats?.total ? (
-                <p className="text-[10px] md:text-xs text-gray-500 mt-1">
-                  {((transitionStats.createProspect / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
-                </p>
-              ) : null}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Chart */}
-        <div className="mb-6">
-          <ConversationsChart />
-        </div>
-      </main>
+        </main>
       </div>
     </TooltipProvider>
   );
