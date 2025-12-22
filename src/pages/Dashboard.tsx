@@ -113,8 +113,18 @@ const Dashboard = () => {
            convDate.getFullYear() === today.getFullYear();
   }).length;
 
-  // Calculate active conversations (conversations in the last 7 days)
-  const activeConversations = safeUniqueConversations.filter(conv => {
+  // Calculate active conversations today (2+ messages)
+  const activeConversationsToday = safeUniqueConversations.filter(conv => {
+    const today = new Date();
+    const convDate = new Date(conv.timestamp);
+    const isToday = convDate.getDate() === today.getDate() &&
+                    convDate.getMonth() === today.getMonth() &&
+                    convDate.getFullYear() === today.getFullYear();
+    return isToday && activeConversationIds.has(conv.conversation_id);
+  }).length;
+
+  // Calculate conversations in the last 7 days
+  const conversationsLastSevenDays = safeUniqueConversations.filter(conv => {
     const convDate = new Date(conv.timestamp);
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
@@ -420,7 +430,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Conversations Today Card */}
+          {/* Conversations Today Card - Dual Stats */}
           <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 md:px-6 pt-3 md:pt-6">
               <div className="flex items-center gap-1 md:gap-2">
@@ -437,18 +447,28 @@ const Dashboard = () => {
               <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
             </CardHeader>
             <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-              <div className="text-2xl md:text-3xl font-bold text-gray-900">{conversationsToday}</div>
+              <div className="flex items-baseline gap-3">
+                <div className="flex flex-col">
+                  <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wide">{t('all')}</span>
+                  <span className="text-xl md:text-2xl font-bold text-gray-900">{conversationsToday}</span>
+                </div>
+                <div className="w-px h-8 bg-gray-200"></div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] md:text-xs text-primary uppercase tracking-wide font-medium">{t('active')}</span>
+                  <span className="text-xl md:text-2xl font-bold text-primary">{activeConversationsToday}</span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Additional Statistics Row */}
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 mb-4 md:mb-6">
-          {/* Active Conversations (Last 7 Days) */}
+          {/* Conversations Last 7 Days */}
           <Card className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 md:px-6 pt-3 md:pt-6">
               <div className="flex items-center gap-1 md:gap-2">
-                <CardTitle className="text-xs md:text-sm font-medium text-gray-600">{t('activeLastSevenDays')}</CardTitle>
+                <CardTitle className="text-xs md:text-sm font-medium text-gray-600">{t('conversationsLastSevenDays')}</CardTitle>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Info className="h-3 w-3 md:h-4 md:w-4 text-gray-400 cursor-help hidden md:block" />
@@ -461,9 +481,9 @@ const Dashboard = () => {
               <Activity className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
             </CardHeader>
             <CardContent className="px-3 md:px-6 pb-3 md:pb-6">
-              <div className="text-2xl md:text-3xl font-bold text-gray-900">{activeConversations}</div>
+              <div className="text-2xl md:text-3xl font-bold text-gray-900">{conversationsLastSevenDays}</div>
               <p className="text-[10px] md:text-xs text-gray-500 mt-1">
-                {((activeConversations / totalConversations) * 100).toFixed(0)}% {t('ofTotal')}
+                {((conversationsLastSevenDays / totalConversations) * 100 || 0).toFixed(0)}% {t('ofTotal')}
               </p>
             </CardContent>
           </Card>
@@ -529,7 +549,7 @@ const Dashboard = () => {
                 <div className="w-px h-8 bg-gray-200"></div>
                 <div className="flex flex-col">
                   <span className="text-[10px] md:text-xs text-primary uppercase tracking-wide font-medium">{t('active')}</span>
-                  <span className="text-xl md:text-2xl font-bold text-primary">{totalActiveConversations}</span>
+                  <span className="text-xl md:text-2xl font-bold text-primary">100%</span>
                 </div>
               </div>
               <p className={`text-[10px] md:text-xs ${responseRateTrendColor} mt-2`}>
