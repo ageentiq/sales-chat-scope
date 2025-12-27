@@ -526,7 +526,7 @@ const Dashboard = () => {
                 </Tooltip>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{avgResponseTime}</div>
+                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{activeAvgResponseTime}</div>
                 {avgResponseTimeTrend !== 0 && (
                   <div className="mt-3 pt-3 border-t border-gray-100">
                     <p className={`text-[11px] md:text-xs ${avgResponseTimeTrendColor} flex items-center gap-1`}>
