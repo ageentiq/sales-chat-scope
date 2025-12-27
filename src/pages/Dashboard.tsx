@@ -1,28 +1,69 @@
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUniqueConversations, useConversations, useTransitionStats } from "@/hooks/useConversations";
 import { MessageCircle, MessagesSquare, Users, TrendingUp, Clock, Activity, PhoneOff, Star, ThumbsDown, Briefcase } from "lucide-react";
 import { ConversationsChart } from "@/components/ConversationsChart";
+import { DateFilter, DateFilterOption, DateRange, getDateRangeForOption } from "@/components/DateFilter";
 
 const Dashboard = () => {
   const { t } = useLanguage();
   
+  // Date filter state
+  const [dateFilterOption, setDateFilterOption] = useState<DateFilterOption>("allTime");
+  const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
+  
   // Use React Query hooks for data fetching
   const { data: uniqueConversations = [] } = useUniqueConversations();
   const { data: allConversations = [], isLoading: isLoadingAll } = useConversations();
-  const { data: transitionStats } = useTransitionStats();
+  
+  // Format dates for transition stats API
+  const dateFromStr = dateRange.from ? dateRange.from.toISOString() : null;
+  const dateToStr = dateRange.to ? dateRange.to.toISOString() : null;
+  const { data: transitionStats } = useTransitionStats(dateFromStr, dateToStr);
   
   // Fallback to ensure we always have data
   const safeUniqueConversations = uniqueConversations || [];
   const safeAllConversations = allConversations || [];
+
+  // Handle date filter change
+  const handleDateFilterChange = (option: DateFilterOption, range: DateRange) => {
+    setDateFilterOption(option);
+    setDateRange(range);
+  };
+
+  // Filter data based on date range
+  const filteredData = useMemo(() => {
+    if (!dateRange.from || !dateRange.to) {
+      return {
+        uniqueConversations: safeUniqueConversations,
+        allConversations: safeAllConversations,
+      };
+    }
+
+    const filteredUnique = safeUniqueConversations.filter((conv) => {
+      const convDate = new Date(conv.timestamp);
+      return convDate >= dateRange.from! && convDate <= dateRange.to!;
+    });
+
+    const filteredAll = safeAllConversations.filter((msg) => {
+      const msgDate = new Date(msg.timestamp);
+      return msgDate >= dateRange.from! && msgDate <= dateRange.to!;
+    });
+
+    return {
+      uniqueConversations: filteredUnique,
+      allConversations: filteredAll,
+    };
+  }, [safeUniqueConversations, safeAllConversations, dateRange]);
+
+  const totalConversations = filteredData.uniqueConversations.length;
+  const totalMessages = filteredData.allConversations.length;
   
-  const totalConversations = safeUniqueConversations.length;
-  const totalMessages = safeAllConversations.length;
-  
-  // Calculate conversation message counts for active filtering
+  // Calculate conversation message counts for active filtering (filtered)
   const conversationMessageCounts: Record<string, number> = {};
-  safeAllConversations.forEach(message => {
+  filteredData.allConversations.forEach(message => {
     if (!conversationMessageCounts[message.conversation_id]) {
       conversationMessageCounts[message.conversation_id] = 0;
     }
@@ -36,6 +77,21 @@ const Dashboard = () => {
       .map(([id]) => id)
   );
   const totalActiveConversations = activeConversationIds.size;
+
+  // Calculate global active conversation IDs (for fixed cards like Today)
+  const globalConversationMessageCounts: Record<string, number> = {};
+  safeAllConversations.forEach(message => {
+    if (!globalConversationMessageCounts[message.conversation_id]) {
+      globalConversationMessageCounts[message.conversation_id] = 0;
+    }
+    globalConversationMessageCounts[message.conversation_id]++;
+  });
+  
+  const globalActiveConversationIds = new Set(
+    Object.entries(globalConversationMessageCounts)
+      .filter(([_, count]) => count >= 2)
+      .map(([id]) => id)
+  );
   
   // Calculate Avg Messages per Conversation with trend analysis
   const calculateAvgMessagesPerConversation = () => {
@@ -113,17 +169,17 @@ const Dashboard = () => {
            convDate.getFullYear() === today.getFullYear();
   }).length;
 
-  // Calculate active conversations today (2+ messages)
+  // Calculate active conversations today (2+ messages) - uses global active IDs
   const activeConversationsToday = safeUniqueConversations.filter(conv => {
     const today = new Date();
     const convDate = new Date(conv.timestamp);
     const isToday = convDate.getDate() === today.getDate() &&
                     convDate.getMonth() === today.getMonth() &&
                     convDate.getFullYear() === today.getFullYear();
-    return isToday && activeConversationIds.has(conv.conversation_id);
+    return isToday && globalActiveConversationIds.has(conv.conversation_id);
   }).length;
 
-  // Calculate conversations in the last 7 days
+  // Calculate conversations in the last 7 days (fixed - not affected by date filter)
   const conversationsLastSevenDays = safeUniqueConversations.filter(conv => {
     const convDate = new Date(conv.timestamp);
     const weekAgo = new Date();
@@ -131,23 +187,24 @@ const Dashboard = () => {
     return convDate >= weekAgo;
   }).length;
 
-  // Calculate active conversations in the last 7 days
+  // Calculate active conversations in the last 7 days (fixed - not affected by date filter)
   const activeConversationsLastSevenDays = safeUniqueConversations.filter(conv => {
     const convDate = new Date(conv.timestamp);
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
-    return convDate >= weekAgo && activeConversationIds.has(conv.conversation_id);
+    return convDate >= weekAgo && globalActiveConversationIds.has(conv.conversation_id);
   }).length;
 
   // Calculate average response time based on time between messages in a conversation
   // Returns both all conversations and active-only (2+ messages) stats
+  // Uses filtered data based on date filter
   const calculateAvgResponseTime = () => {
     const responseTimes: number[] = [];
     const activeResponseTimes: number[] = [];
     
-    // Group messages by conversation_id
-    const conversationGroups: Record<string, typeof safeAllConversations> = {};
-    safeAllConversations.forEach(message => {
+    // Group messages by conversation_id (using filtered data)
+    const conversationGroups: Record<string, typeof filteredData.allConversations> = {};
+    filteredData.allConversations.forEach(message => {
       if (!conversationGroups[message.conversation_id]) {
         conversationGroups[message.conversation_id] = [];
       }
@@ -342,9 +399,16 @@ const Dashboard = () => {
         {/* Header */}
         <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
           <div className="px-4 md:px-8 py-4 md:py-6">
-            <div>
-              <h1 className="text-xl md:text-3xl font-bold text-gray-900 tracking-tight">{t('salesDashboard')}</h1>
-              <p className="text-sm md:text-base text-gray-500 mt-1">{t('trackAndAnalyze')}</p>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h1 className="text-xl md:text-3xl font-bold text-gray-900 tracking-tight">{t('salesDashboard')}</h1>
+                <p className="text-sm md:text-base text-gray-500 mt-1">{t('trackAndAnalyze')}</p>
+              </div>
+              <DateFilter
+                value={dateFilterOption}
+                dateRange={dateRange}
+                onChange={handleDateFilterChange}
+              />
             </div>
           </div>
         </header>

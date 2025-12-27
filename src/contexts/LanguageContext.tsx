@@ -141,6 +141,18 @@ const translations = {
     active: 'النشط',
     activeConversationsTooltip: 'المحادثات النشطة هي المحادثات التي تحتوي على رسالتين أو أكثر (تفاعل العميل)',
     ofTotal: 'من الإجمالي',
+    // Date filter
+    allTime: 'كل الوقت',
+    today: 'اليوم',
+    yesterday: 'أمس',
+    currentMonth: 'الشهر الحالي',
+    lastMonth: 'الشهر الماضي',
+    dateRange: 'نطاق تاريخ',
+    selectDateRange: 'اختر نطاق التاريخ',
+    from: 'من',
+    to: 'إلى',
+    apply: 'تطبيق',
+    filterByDate: 'تصفية حسب التاريخ',
   },
   en: {
     home: 'Home',
@@ -272,6 +284,18 @@ const translations = {
     active: 'Active',
     activeConversationsTooltip: 'Active conversations are those with 2+ messages (customer engagement)',
     ofTotal: 'of total',
+    // Date filter
+    allTime: 'All Time',
+    today: 'Today',
+    yesterday: 'Yesterday',
+    currentMonth: 'Current Month',
+    lastMonth: 'Last Month',
+    dateRange: 'Date Range',
+    selectDateRange: 'Select date range',
+    from: 'From',
+    to: 'To',
+    apply: 'Apply',
+    filterByDate: 'Filter by date',
   },
 };
 

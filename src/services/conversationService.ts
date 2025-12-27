@@ -217,7 +217,7 @@ export class ConversationService {
     }
   }
 
-  static async getTransitionStats(): Promise<{
+  static async getTransitionStats(dateFrom?: string, dateTo?: string): Promise<{
     noResponse: number;
     futureInterest: number;
     notInterested: number;
@@ -225,8 +225,19 @@ export class ConversationService {
     total: number;
   }> {
     try {
-      console.log('🔍 [ConversationService] Fetching transition stats from:', `${API_BASE_URL}/analysis/stats/transitions`);
-      const response = await fetch(`${API_BASE_URL}/analysis/stats/transitions`);
+      let url = `${API_BASE_URL}/analysis/stats/transitions`;
+      
+      // Add date parameters if provided
+      const params = new URLSearchParams();
+      if (dateFrom) params.append('dateFrom', dateFrom);
+      if (dateTo) params.append('dateTo', dateTo);
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+      
+      console.log('🔍 [ConversationService] Fetching transition stats from:', url);
+      const response = await fetch(url);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
