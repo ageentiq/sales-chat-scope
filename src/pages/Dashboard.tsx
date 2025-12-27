@@ -571,24 +571,24 @@ const Dashboard = () => {
 
           {/* Transition Statistics */}
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            {/* No Response */}
+            {/* Create Prospect */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
                 <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">
-                  <span className="block">No Response</span>
-                  <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">لم يتم الرد</span>
+                  <span className="block">Create Prospect</span>
+                  <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">إنشاء صفقة</span>
                 </CardTitle>
-                <div className="p-2 bg-red-50 rounded-lg">
-                  <PhoneOff className="h-4 w-4 md:h-5 md:w-5 text-red-400" />
+                <div className="p-2 bg-green-50 rounded-lg">
+                  <Briefcase className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
                 </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.noResponse || 0}</div>
+                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.createProspect || 0}</div>
                 {transitionStats?.total ? (
                   <div className="mt-3 pt-3 border-t border-gray-100">
                     <p className="text-[11px] md:text-xs text-gray-500 flex items-center gap-1">
-                      <span className="inline-block w-2 h-2 rounded-full bg-red-200"></span>
-                      {((transitionStats.noResponse / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
+                      <span className="inline-block w-2 h-2 rounded-full bg-green-300"></span>
+                      {((transitionStats.createProspect / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
                     </p>
                   </div>
                 ) : null}
@@ -643,24 +643,24 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Create Prospect */}
+            {/* No Response */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
                 <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">
-                  <span className="block">Create Prospect</span>
-                  <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">إنشاء صفقة</span>
+                  <span className="block">No Response</span>
+                  <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">لم يتم الرد</span>
                 </CardTitle>
-                <div className="p-2 bg-green-50 rounded-lg">
-                  <Briefcase className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
+                <div className="p-2 bg-red-50 rounded-lg">
+                  <PhoneOff className="h-4 w-4 md:h-5 md:w-5 text-red-400" />
                 </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.createProspect || 0}</div>
+                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.noResponse || 0}</div>
                 {transitionStats?.total ? (
                   <div className="mt-3 pt-3 border-t border-gray-100">
                     <p className="text-[11px] md:text-xs text-gray-500 flex items-center gap-1">
-                      <span className="inline-block w-2 h-2 rounded-full bg-green-300"></span>
-                      {((transitionStats.createProspect / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
+                      <span className="inline-block w-2 h-2 rounded-full bg-red-200"></span>
+                      {((transitionStats.noResponse / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
                     </p>
                   </div>
                 ) : null}
