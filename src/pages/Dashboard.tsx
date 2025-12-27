@@ -131,6 +131,14 @@ const Dashboard = () => {
     return convDate >= weekAgo;
   }).length;
 
+  // Calculate active conversations in the last 7 days
+  const activeConversationsLastSevenDays = safeUniqueConversations.filter(conv => {
+    const convDate = new Date(conv.timestamp);
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return convDate >= weekAgo && activeConversationIds.has(conv.conversation_id);
+  }).length;
+
   // Calculate average response time based on time between messages in a conversation
   // Returns both all conversations and active-only (2+ messages) stats
   const calculateAvgResponseTime = () => {
@@ -482,11 +490,21 @@ const Dashboard = () => {
                 </Tooltip>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{conversationsLastSevenDays}</div>
+                <div className="flex items-end gap-4">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wider font-medium">{t('all')}</span>
+                    <span className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{conversationsLastSevenDays}</span>
+                  </div>
+                  <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-200 to-transparent"></div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] md:text-xs text-primary uppercase tracking-wider font-semibold">{t('active')}</span>
+                    <span className="text-xl md:text-3xl font-bold text-primary tabular-nums">{activeConversationsLastSevenDays}</span>
+                  </div>
+                </div>
                 <div className="mt-3 pt-3 border-t border-gray-100">
                   <p className="text-[11px] md:text-xs text-gray-500 flex items-center gap-1">
-                    <span className="inline-block w-2 h-2 rounded-full bg-gray-300"></span>
-                    {((conversationsLastSevenDays / totalConversations) * 100 || 0).toFixed(0)}% {t('ofTotal')}
+                    <span className="inline-block w-2 h-2 rounded-full bg-primary/20"></span>
+                    {((activeConversationsLastSevenDays / conversationsLastSevenDays) * 100 || 0).toFixed(0)}% {t('ofTotal')}
                   </p>
                 </div>
               </CardContent>
