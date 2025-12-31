@@ -446,7 +446,7 @@ const Dashboard = () => {
                 <div className="mt-3 pt-3 border-t border-gray-100">
                   <p className="text-[11px] md:text-xs text-gray-500 flex items-center gap-1">
                     <span className="inline-block w-2 h-2 rounded-full bg-primary/20"></span>
-                    {((totalActiveConversations / totalConversations) * 100 || 0).toFixed(0)}% {t('responseRate').toLowerCase()}
+                    {((totalActiveConversations / totalConversations) * 100 || 0).toFixed(0)}% {(t('responseRate') || '').toLowerCase()}
                   </p>
                 </div>
               </CardContent>

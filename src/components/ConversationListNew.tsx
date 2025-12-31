@@ -52,14 +52,20 @@ export const ConversationList = ({
     }
   };
 
-  const filteredConversations = safeConversations.filter(conv =>
-    conv.conversation_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    conv.inbound.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    conv.outbound.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const toSearchable = (value: unknown) => (value ?? "").toString().toLowerCase();
+
+  const filteredConversations = safeConversations.filter((conv) => {
+    const q = toSearchable(searchTerm);
+    return (
+      toSearchable(conv.conversation_id).includes(q) ||
+      toSearchable(conv.inbound).includes(q) ||
+      toSearchable(conv.outbound).includes(q)
+    );
+  });
 
   const getConversationStatus = (conv: ConversationMessage) => {
-    const hoursSinceLastMessage = (Date.now() - new Date(conv.timestamp).getTime()) / (1000 * 60 * 60);
+    const hoursSinceLastMessage =
+      (Date.now() - new Date(conv.timestamp).getTime()) / (1000 * 60 * 60);
     if (hoursSinceLastMessage < 1) return 'active';
     if (hoursSinceLastMessage < 24) return 'recent';
     return 'inactive';
@@ -67,14 +73,18 @@ export const ConversationList = ({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'recent': return 'bg-yellow-500';
-      default: return 'bg-gray-400';
+      case 'active':
+        return 'bg-green-500';
+      case 'recent':
+        return 'bg-yellow-500';
+      default:
+        return 'bg-gray-400';
     }
   };
 
-  const truncateText = (text: string, maxLength: number = 60) => {
-    return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+  const truncateText = (text: unknown, maxLength: number = 60) => {
+    const safeText = (text ?? "").toString();
+    return safeText.length > maxLength ? safeText.substring(0, maxLength) + "..." : safeText;
   };
 
   if (isLoading) {
