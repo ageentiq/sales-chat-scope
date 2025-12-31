@@ -67,9 +67,9 @@ export const ConversationList = ({
   
   const safeConversations = conversations || [];
   
-  const parseTimestamp = (timestamp: string | null | undefined): Date => {
+  const parseTimestamp = (timestamp: string | null | undefined): number => {
     const ts = (timestamp ?? "").trim();
-    if (!ts) return new Date(0);
+    if (!ts) return 0;
 
     const m = ts.match(
       /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/
@@ -77,19 +77,18 @@ export const ConversationList = ({
 
     if (m) {
       const [, y, mo, d, h, mi, s] = m;
-      return new Date(
-        Date.UTC(
-          Number(y),
-          Number(mo) - 1,
-          Number(d),
-          Number(h),
-          Number(mi),
-          s ? Number(s) : 0
-        )
+      return Date.UTC(
+        Number(y),
+        Number(mo) - 1,
+        Number(d),
+        Number(h),
+        Number(mi),
+        s ? Number(s) : 0
       );
     }
 
-    return new Date(ts);
+    const parsed = new Date(ts).getTime();
+    return Number.isFinite(parsed) ? parsed : 0;
   };
 
   const filteredConversations = safeConversations
@@ -102,7 +101,7 @@ export const ConversationList = ({
         inbound.includes(searchLower) ||
         outbound.includes(searchLower);
     })
-    .sort((a, b) => parseTimestamp(b.timestamp).getTime() - parseTimestamp(a.timestamp).getTime());
+    .sort((a, b) => parseTimestamp(b.timestamp) - parseTimestamp(a.timestamp));
 
   const totalPages = Math.ceil(filteredConversations.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -114,12 +113,12 @@ export const ConversationList = ({
   };
 
   const formatTimestamp = (timestamp: string | null | undefined) => {
-    const date = parseTimestamp(timestamp);
-    const time = date.getTime();
+    const time = parseTimestamp(timestamp);
     if (!Number.isFinite(time) || time === 0) return "";
     
+    const date = new Date(time);
     const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    const diffInHours = (now.getTime() - time) / (1000 * 60 * 60);
     
     if (diffInHours < 24) {
       return date.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
