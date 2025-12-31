@@ -537,6 +537,9 @@ const Dashboard = () => {
             </Card>
           </div>
 
+          {/* Message Status Cards */}
+          <MessageStatusChart />
+
           {/* Secondary Statistics Row */}
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {/* Conversations Last 7 Days */}
@@ -732,9 +735,6 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </div>
-
-          {/* Message Status Analytics - Inline Cards */}
-          <MessageStatusChart />
 
           {/* Chart */}
           <Card className="bg-white border border-gray-100 shadow-sm rounded-xl overflow-hidden">
