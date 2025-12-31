@@ -176,6 +176,10 @@ const translations = {
     failedReason4: 'مشاكل في الشبكة أثناء الإرسال',
     failedMessageContent: 'محتوى الرسالة الفاشلة',
     close: 'إغلاق',
+    // Failure reasons
+    incorrectNumber: 'رقم هاتف غير صحيح',
+    otherReason: 'سبب آخر',
+    failureReason: 'سبب الفشل',
     // Message status analytics
     messageStatusAnalytics: 'حالة الرسائل',
     trackingStartedAt: 'منذ',
@@ -346,6 +350,10 @@ const translations = {
     failedReason4: 'Network issues during sending',
     failedMessageContent: 'Failed Message Content',
     close: 'Close',
+    // Failure reasons
+    incorrectNumber: 'Incorrect phone number',
+    otherReason: 'Other reason',
+    failureReason: 'Failure Reason',
     // Message status analytics
     messageStatusAnalytics: 'Message Status',
     trackingStartedAt: 'Since',
