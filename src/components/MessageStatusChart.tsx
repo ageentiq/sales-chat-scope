@@ -93,12 +93,12 @@ export const MessageStatusChart = () => {
           </div>
         </CardHeader>
         <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-          <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">
-            {statusCounts.total}
-          </div>
-          <p className="text-[10px] md:text-xs text-gray-500 mt-1">
-            {t('totalTracked') || 'messages tracked'}
-          </p>
+        <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">
+          {statusCounts.total}
+        </div>
+        <p className="text-[10px] md:text-xs text-gray-500 mt-1">
+          {t('messagesTracked') || 'messages tracked'}
+        </p>
         </CardContent>
       </Card>
 

@@ -176,6 +176,10 @@ const translations = {
     failedReason4: 'مشاكل في الشبكة أثناء الإرسال',
     failedMessageContent: 'محتوى الرسالة الفاشلة',
     close: 'إغلاق',
+    // Message status analytics
+    messageStatusAnalytics: 'حالة الرسائل',
+    trackingStartedAt: 'منذ',
+    messagesTracked: 'رسالة متتبعة',
   },
   en: {
     home: 'Home',
@@ -342,6 +346,10 @@ const translations = {
     failedReason4: 'Network issues during sending',
     failedMessageContent: 'Failed Message Content',
     close: 'Close',
+    // Message status analytics
+    messageStatusAnalytics: 'Message Status',
+    trackingStartedAt: 'Since',
+    messagesTracked: 'messages tracked',
   },
 };
 
