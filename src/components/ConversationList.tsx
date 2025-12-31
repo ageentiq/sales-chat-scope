@@ -7,6 +7,7 @@ import { useUniqueConversations } from "@/hooks/useConversations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { getMessageTimeMs } from "@/lib/timestamps";
 
 interface ConversationListProps {
   onConversationSelect: (conversationId: string) => void;
@@ -66,30 +67,6 @@ export const ConversationList = ({
   const { data: conversations = [], isLoading } = useUniqueConversations();
   
   const safeConversations = conversations || [];
-  
-  const parseTimestamp = (timestamp: string | null | undefined): number => {
-    const ts = (timestamp ?? "").trim();
-    if (!ts) return 0;
-
-    const m = ts.match(
-      /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/
-    );
-
-    if (m) {
-      const [, y, mo, d, h, mi, s] = m;
-      return Date.UTC(
-        Number(y),
-        Number(mo) - 1,
-        Number(d),
-        Number(h),
-        Number(mi),
-        s ? Number(s) : 0
-      );
-    }
-
-    const parsed = new Date(ts).getTime();
-    return Number.isFinite(parsed) ? parsed : 0;
-  };
 
   const filteredConversations = safeConversations
     .filter(conv => {
@@ -101,7 +78,7 @@ export const ConversationList = ({
         inbound.includes(searchLower) ||
         outbound.includes(searchLower);
     })
-    .sort((a, b) => parseTimestamp(b.timestamp) - parseTimestamp(a.timestamp));
+    .sort((a, b) => getMessageTimeMs(b) - getMessageTimeMs(a));
 
   const totalPages = Math.ceil(filteredConversations.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -112,8 +89,8 @@ export const ConversationList = ({
     setCurrentPage(1);
   };
 
-  const formatTimestamp = (timestamp: string | null | undefined) => {
-    const time = parseTimestamp(timestamp);
+  const formatTimestamp = (input: { timestamp?: string | null; latestTimestamp?: number | null }) => {
+    const time = getMessageTimeMs(input);
     if (!Number.isFinite(time) || time === 0) return "";
     
     const date = new Date(time);
@@ -220,7 +197,7 @@ export const ConversationList = ({
                             #{conversation.conversation_id}
                           </p>
                           <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-xs text-gray-500">{formatTimestamp(conversation.timestamp)}</span>
+                            <span className="text-xs text-gray-500">{formatTimestamp(conversation)}</span>
                             {conversation.latestStatus && (
                               <StatusIndicator status={conversation.latestStatus} t={t} />
                             )}

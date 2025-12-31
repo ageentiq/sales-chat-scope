@@ -6,6 +6,7 @@ import { ArrowLeft, MessageSquare, User, Bot, Hash, TrendingUp, FileText, ArrowR
 import { useConversationsByGroupId, useAnalysisByConversationId } from "@/hooks/useConversations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getObjectIdString } from "@/lib/utils";
+import { getMessageTimeMs } from "@/lib/timestamps";
 import { MessageStatus } from "@/data/mockData";
 import { useState } from "react";
 
@@ -139,47 +140,19 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const { data: rawMessages = [], isLoading } = useConversationsByGroupId(conversationId);
   const { data: analysis, isLoading: isLoadingAnalysis } = useAnalysisByConversationId(conversationId);
   
-  // Parse timestamp safely and consistently across browsers.
-  // If backend sends "YYYY-MM-DD HH:mm" (no timezone), assume it's UTC then display in user's local time.
-  const parseTimestamp = (timestamp: string | null | undefined): Date => {
-    const ts = (timestamp ?? "").trim();
-    if (!ts) return new Date(0);
-
-    const m = ts.match(
-      /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/
-    );
-
-    if (m) {
-      const [, y, mo, d, h, mi, s] = m;
-      return new Date(
-        Date.UTC(
-          Number(y),
-          Number(mo) - 1,
-          Number(d),
-          Number(h),
-          Number(mi),
-          s ? Number(s) : 0
-        )
-      );
-    }
-
-    // ISO strings with timezone (e.g. ...Z) will be handled correctly by Date().
-    return new Date(ts);
-  };
-
   // Sort messages by timestamp ascending (oldest first for chat view)
   const messages = [...rawMessages].sort((a, b) =>
-    parseTimestamp(a.timestamp).getTime() - parseTimestamp(b.timestamp).getTime()
+    getMessageTimeMs(a) - getMessageTimeMs(b)
   );
   
   console.log('📨 [ChatView] Messages received:', messages.length, 'messages');
   console.log('📊 [ChatView] Analysis received:', analysis);
 
-  const formatTimestamp = (timestamp: string | null | undefined) => {
-    const d = parseTimestamp(timestamp);
-    const time = d.getTime();
+  const formatTimestamp = (input: { timestamp?: string | null; latestTimestamp?: number | null }) => {
+    const time = getMessageTimeMs(input);
     if (!Number.isFinite(time) || time === 0) return "";
 
+    const d = new Date(time);
     return d.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
       hour: '2-digit',
       minute: '2-digit',
