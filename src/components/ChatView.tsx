@@ -2,10 +2,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, MessageSquare, User, Bot, Calendar, Hash, TrendingUp, FileText, ArrowRightLeft } from "lucide-react";
+import { ArrowLeft, MessageSquare, User, Bot, Hash, TrendingUp, FileText, ArrowRightLeft, Check, CheckCheck, AlertTriangle, X } from "lucide-react";
 import { useConversationsByGroupId, useAnalysisByConversationId } from "@/hooks/useConversations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getObjectIdString } from "@/lib/utils";
+import { MessageStatus } from "@/data/mockData";
+import { useState } from "react";
 
 interface ChatViewProps {
   conversationId: string;
@@ -24,8 +26,113 @@ const MessageSkeleton = ({ align = "left" }: { align?: "left" | "right" }) => (
   </div>
 );
 
+// Status indicator component
+const MessageStatusIndicator = ({ status }: { status?: MessageStatus }) => {
+  if (!status) return null;
+  
+  const statusConfig = {
+    sent: { icon: Check, color: 'text-gray-400', label: 'Sent' },
+    delivered: { icon: CheckCheck, color: 'text-green-500', label: 'Delivered' },
+    read: { icon: CheckCheck, color: 'text-blue-500', label: 'Read' },
+    failed: { icon: AlertTriangle, color: 'text-red-500', label: 'Failed' },
+  };
+  
+  const config = statusConfig[status];
+  const Icon = config.icon;
+  
+  return (
+    <div className={`flex items-center gap-1 ${config.color}`}>
+      <Icon className="h-3 w-3 md:h-3.5 md:w-3.5" />
+      <span className="text-[9px] md:text-[10px] font-medium">{config.label}</span>
+    </div>
+  );
+};
+
+// Failed message modal
+const FailedMessageModal = ({ 
+  message, 
+  onClose,
+  isArabic 
+}: { 
+  message: { inbound: string; outbound: string; conversation_id: string; timestamp: string };
+  onClose: () => void;
+  isArabic: (text: string) => boolean;
+}) => {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 fade-in duration-200">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-red-500 to-red-600 p-4 md:p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-full bg-white/20">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Message Failed</h3>
+                <p className="text-red-100 text-sm">Delivery unsuccessful</p>
+              </div>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onClose}
+              className="text-white hover:bg-white/20 rounded-full p-2"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+        
+        {/* Content */}
+        <div className="p-4 md:p-6 space-y-4">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-red-800">Possible reasons:</p>
+                <ul className="mt-2 text-sm text-red-700 space-y-1">
+                  <li>• Phone number may be incorrect</li>
+                  <li>• Number does not have WhatsApp</li>
+                  <li>• User has blocked the sender</li>
+                  <li>• Network or service issue</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Hash className="h-4 w-4" />
+              <span className="font-mono">{message.conversation_id}</span>
+            </div>
+            
+            <div className="bg-gray-50 rounded-xl p-4">
+              <p className="text-xs font-semibold text-gray-500 mb-2">Failed Message:</p>
+              <p 
+                className={`text-sm text-gray-700 ${isArabic(message.outbound) ? 'text-right' : 'text-left'}`}
+                dir={isArabic(message.outbound) ? 'rtl' : 'ltr'}
+              >
+                {message.outbound}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Footer */}
+        <div className="border-t border-gray-100 p-4 bg-gray-50">
+          <Button onClick={onClose} className="w-full">
+            Close
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   const { t, language } = useLanguage();
+  const [failedMessage, setFailedMessage] = useState<{ inbound: string; outbound: string; conversation_id: string; timestamp: string } | null>(null);
   console.log('👀 [ChatView] Rendering with conversationId:', conversationId);
   const { data: rawMessages = [], isLoading } = useConversationsByGroupId(conversationId);
   const { data: analysis, isLoading: isLoadingAnalysis } = useAnalysisByConversationId(conversationId);
@@ -161,12 +268,28 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                   <div 
                     className={`relative p-3 md:p-4 rounded-2xl rounded-tr-sm bg-gradient-to-br from-primary to-primary/90 text-white shadow-md shadow-primary/30 group-hover:shadow-lg group-hover:shadow-primary/40 transition-all duration-300 ${
                       isArabic(message.outbound) ? 'text-right' : 'text-left'
-                    }`}
+                    } ${message.latestStatus === 'failed' ? 'cursor-pointer ring-2 ring-red-500/50' : ''}`}
                     dir={isArabic(message.outbound) ? 'rtl' : 'ltr'}
+                    onClick={() => {
+                      if (message.latestStatus === 'failed') {
+                        setFailedMessage({
+                          inbound: message.inbound,
+                          outbound: message.outbound,
+                          conversation_id: message.conversation_id,
+                          timestamp: message.timestamp
+                        });
+                      }
+                    }}
                   >
                     <div className="absolute -right-1 top-3 w-2 h-2 bg-primary rotate-45 hidden md:block" />
                     <p className="leading-relaxed text-xs md:text-sm">{message.outbound}</p>
                   </div>
+                  {/* Status indicator */}
+                  {message.latestStatus && (
+                    <div className="mt-1 md:mt-1.5">
+                      <MessageStatusIndicator status={message.latestStatus} />
+                    </div>
+                  )}
                 </div>
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/30 ring-2 ring-white">
@@ -255,6 +378,15 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
           )}
         </div>
       </CardContent>
+      
+      {/* Failed message modal */}
+      {failedMessage && (
+        <FailedMessageModal 
+          message={failedMessage} 
+          onClose={() => setFailedMessage(null)} 
+          isArabic={isArabic}
+        />
+      )}
     </Card>
   );
 };
