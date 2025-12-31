@@ -225,7 +225,7 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                   <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-1.5">
                     <span className="text-[10px] md:text-xs font-semibold text-gray-700">{t('customerLabel')}</span>
                     <span className="text-[10px] md:text-xs text-gray-400">•</span>
-                    <span className="text-[10px] md:text-xs text-gray-500">{formatTimestamp(message.timestamp)}</span>
+                    <span className="text-[10px] md:text-xs text-gray-500">{formatTimestamp(message)}</span>
                   </div>
                   <div 
                     className={`relative p-3 md:p-4 rounded-2xl rounded-tl-sm bg-gradient-to-br from-blue-50 to-blue-100/80 text-gray-900 shadow-md border border-blue-200/50 group-hover:shadow-lg transition-all duration-300 ${
@@ -243,7 +243,7 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
               <div className="flex gap-2 md:gap-3 justify-end group">
                 <div className="flex-1 max-w-[85%] md:max-w-[75%] flex flex-col items-end">
                   <div className="flex items-center gap-1 md:gap-2 mb-1 md:mb-1.5">
-                    <span className="text-[10px] md:text-xs text-gray-500">{formatTimestamp(message.timestamp)}</span>
+                    <span className="text-[10px] md:text-xs text-gray-500">{formatTimestamp(message)}</span>
                     <span className="text-[10px] md:text-xs text-gray-400">•</span>
                     <span className="text-[10px] md:text-xs font-semibold text-gray-700">{t('salesTeam')}</span>
                   </div>
