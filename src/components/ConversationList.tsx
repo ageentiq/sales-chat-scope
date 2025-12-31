@@ -68,11 +68,15 @@ export const ConversationList = ({
 
   // Sort by timestamp descending (newest first) and filter
   const filteredConversations = safeConversations
-    .filter(conv => 
-      conv.conversation_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      conv.inbound.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      conv.outbound.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    .filter(conv => {
+      const searchLower = searchTerm.toLowerCase();
+      const conversationId = conv.conversation_id?.toLowerCase() || '';
+      const inbound = conv.inbound?.toLowerCase() || '';
+      const outbound = conv.outbound?.toLowerCase() || '';
+      return conversationId.includes(searchLower) ||
+        inbound.includes(searchLower) ||
+        outbound.includes(searchLower);
+    })
     .sort((a, b) => parseTimestamp(b.timestamp).getTime() - parseTimestamp(a.timestamp).getTime());
 
   // Pagination logic
