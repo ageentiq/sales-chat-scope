@@ -14,14 +14,14 @@ interface ConversationListProps {
 }
 
 // Status indicator component
-const StatusIndicator = ({ status }: { status?: MessageStatus }) => {
+const StatusIndicator = ({ status, t }: { status?: MessageStatus; t: (key: string) => string }) => {
   if (!status) return null;
   
   const statusConfig = {
-    sent: { icon: Check, color: "text-gray-400", bg: "bg-gray-100" },
-    delivered: { icon: CheckCheck, color: "text-emerald-500", bg: "bg-emerald-50" },
-    read: { icon: CheckCheck, color: "text-blue-500", bg: "bg-blue-50" },
-    failed: { icon: AlertCircle, color: "text-red-500", bg: "bg-red-50" },
+    sent: { icon: Check, color: "text-gray-400", bg: "bg-gray-100", label: t('statusSent') },
+    delivered: { icon: CheckCheck, color: "text-emerald-500", bg: "bg-emerald-50", label: t('statusDelivered') },
+    read: { icon: CheckCheck, color: "text-blue-500", bg: "bg-blue-50", label: t('statusRead') },
+    failed: { icon: AlertCircle, color: "text-red-500", bg: "bg-red-50", label: t('statusFailed') },
   };
   
   const config = statusConfig[status] || statusConfig.sent;
@@ -30,7 +30,7 @@ const StatusIndicator = ({ status }: { status?: MessageStatus }) => {
   return (
     <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full ${config.bg}`}>
       <Icon className={`h-3 w-3 ${config.color}`} />
-      <span className={`text-[10px] font-medium capitalize ${config.color}`}>{status}</span>
+      <span className={`text-[10px] font-medium ${config.color}`}>{config.label}</span>
     </div>
   );
 };
@@ -223,7 +223,7 @@ export const ConversationList = ({
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className="text-xs text-gray-500">{formatTimestamp(conversation.timestamp)}</span>
                             {conversation.latestStatus && (
-                              <StatusIndicator status={conversation.latestStatus} />
+                              <StatusIndicator status={conversation.latestStatus} t={t} />
                             )}
                           </div>
                         </div>
