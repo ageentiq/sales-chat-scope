@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useConversations } from "@/hooks/useConversations";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Check, CheckCheck, AlertTriangle, Send } from "lucide-react";
+import { CheckCheck, AlertTriangle, Send } from "lucide-react";
 import { getMessageTimeMs } from "@/lib/timestamps";
 
 // Status tracking started at 03:28 PM on Dec 31, 2025 (UTC+3 = 12:28 PM UTC)
@@ -56,7 +56,6 @@ export const MessageStatusChart = () => {
       icon: CheckCheck,
       color: 'text-green-500',
       bgColor: 'bg-green-50',
-      barColor: 'bg-green-500',
     },
     {
       key: 'read',
@@ -65,16 +64,6 @@ export const MessageStatusChart = () => {
       icon: CheckCheck,
       color: 'text-blue-500',
       bgColor: 'bg-blue-50',
-      barColor: 'bg-blue-500',
-    },
-    {
-      key: 'sent',
-      label: t('statusSent') || 'Sent',
-      count: statusCounts.sent,
-      icon: Check,
-      color: 'text-gray-400',
-      bgColor: 'bg-gray-50',
-      barColor: 'bg-gray-400',
     },
     {
       key: 'failed',
@@ -83,64 +72,65 @@ export const MessageStatusChart = () => {
       icon: AlertTriangle,
       color: 'text-red-500',
       bgColor: 'bg-red-50',
-      barColor: 'bg-red-500',
     },
   ];
 
   return (
-    <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden">
-      <CardHeader className="pb-2 px-4 md:px-6 pt-4 md:pt-6">
-        <div className="flex items-center justify-between">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+      {/* Total Tracked Card */}
+      <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
           <div>
-            <CardTitle className="text-sm md:text-base font-semibold text-gray-700">
-              {t('messageStatusAnalytics') || 'Message Status Analytics'}
+            <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">
+              {t('messageStatusAnalytics') || 'Message Status'}
             </CardTitle>
-            <p className="text-[10px] md:text-xs text-gray-400 mt-1">
-              {t('trackingStartedAt') || 'Tracking started at'} 03:28 PM
+            <p className="text-[9px] md:text-[10px] text-gray-400 mt-0.5">
+              {t('trackingStartedAt') || 'Since'} 03:28 PM
             </p>
           </div>
-          <div className="p-2 bg-primary/5 rounded-lg">
+          <div className="p-2 bg-primary/5 rounded-lg group-hover:bg-primary/10 transition-colors">
             <Send className="h-4 w-4 md:h-5 md:w-5 text-primary" />
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-        <div className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums mb-4">
-          {statusCounts.total}
-          <span className="text-sm md:text-base font-normal text-gray-500 ml-2">
+        </CardHeader>
+        <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+          <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">
+            {statusCounts.total}
+          </div>
+          <p className="text-[10px] md:text-xs text-gray-500 mt-1">
             {t('totalTracked') || 'messages tracked'}
-          </span>
-        </div>
+          </p>
+        </CardContent>
+      </Card>
 
-        <div className="space-y-3">
-          {statusItems.map((item) => {
-            const Icon = item.icon;
-            const percentage = getPercentage(item.count);
-            
-            return (
-              <div key={item.key} className="flex items-center gap-3">
-                <div className={`p-1.5 ${item.bgColor} rounded-lg`}>
-                  <Icon className={`h-3.5 w-3.5 ${item.color}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs md:text-sm font-medium text-gray-700">{item.label}</span>
-                    <span className="text-xs md:text-sm font-bold text-gray-900 tabular-nums">
-                      {item.count} <span className="text-gray-400 font-normal">({percentage}%)</span>
-                    </span>
-                  </div>
-                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${item.barColor} rounded-full transition-all duration-500`}
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-                </div>
+      {/* Status Cards */}
+      {statusItems.map((item) => {
+        const Icon = item.icon;
+        const percentage = getPercentage(item.count);
+        
+        return (
+          <Card key={item.key} className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
+              <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">
+                {item.label}
+              </CardTitle>
+              <div className={`p-2 ${item.bgColor} rounded-lg`}>
+                <Icon className={`h-4 w-4 md:h-5 md:w-5 ${item.color}`} />
               </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+            </CardHeader>
+            <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+              <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">
+                {item.count}
+              </div>
+              <div className="mt-2 pt-2 border-t border-gray-100">
+                <p className="text-[10px] md:text-xs text-gray-500 flex items-center gap-1">
+                  <span className={`inline-block w-2 h-2 rounded-full ${item.bgColor}`}></span>
+                  {percentage}% {t('ofTotal') || 'of total'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
   );
 };
