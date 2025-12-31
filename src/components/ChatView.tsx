@@ -49,6 +49,18 @@ const MessageStatusIndicator = ({ status, t }: { status?: MessageStatus; t: (key
   );
 };
 
+// Function to determine failure reason based on phone number validation
+const getFailureReason = (conversationId: string, t: (key: string) => string): { reason: string; isIncorrectNumber: boolean } => {
+  // Valid phone format: exactly 12 digits starting with 966 (e.g., 966551887877)
+  const validPhonePattern = /^966\d{9}$/;
+  const isValidNumber = validPhonePattern.test(conversationId);
+  
+  if (!isValidNumber) {
+    return { reason: t('incorrectNumber') || 'Incorrect phone number', isIncorrectNumber: true };
+  }
+  return { reason: t('otherReason') || 'Other reason', isIncorrectNumber: false };
+};
+
 // Failed message modal
 const FailedMessageModal = ({ 
   message, 
@@ -61,6 +73,7 @@ const FailedMessageModal = ({
   isArabic: (text: string) => boolean;
   t: (key: string) => string;
 }) => {
+  const failureInfo = getFailureReason(message.conversation_id, t);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in zoom-in-95 fade-in duration-200">
@@ -89,17 +102,17 @@ const FailedMessageModal = ({
         
         {/* Content */}
         <div className="p-4 md:p-6 space-y-4">
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+          {/* Calculated Failure Reason */}
+          <div className={`border rounded-xl p-4 ${failureInfo.isIncorrectNumber ? 'bg-orange-50 border-orange-200' : 'bg-yellow-50 border-yellow-200'}`}>
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-full ${failureInfo.isIncorrectNumber ? 'bg-orange-100' : 'bg-yellow-100'}`}>
+                <AlertTriangle className={`h-5 w-5 ${failureInfo.isIncorrectNumber ? 'text-orange-500' : 'text-yellow-500'}`} />
+              </div>
               <div>
-                <p className="text-sm font-semibold text-red-800">{t('messageFailedDescription')}</p>
-                <ul className="mt-2 text-sm text-red-700 space-y-1">
-                  <li>• {t('failedReason1')}</li>
-                  <li>• {t('failedReason2')}</li>
-                  <li>• {t('failedReason3')}</li>
-                  <li>• {t('failedReason4')}</li>
-                </ul>
+                <p className="text-xs font-medium text-gray-500">{t('failureReason') || 'Failure Reason'}</p>
+                <p className={`text-sm font-bold ${failureInfo.isIncorrectNumber ? 'text-orange-700' : 'text-yellow-700'}`}>
+                  {failureInfo.reason}
+                </p>
               </div>
             </div>
           </div>
