@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Search, MessageCircle, Clock, Inbox, ChevronLeft, ChevronRight } from "lucide-react";
-import { ConversationMessage } from "@/data/mockData";
+import { Search, MessageCircle, Inbox, ChevronLeft, ChevronRight, User, Bot, Check, CheckCheck, AlertCircle } from "lucide-react";
+import { MessageStatus } from "@/data/mockData";
 import { useUniqueConversations } from "@/hooks/useConversations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,16 +13,44 @@ interface ConversationListProps {
   selectedConversationId?: string;
 }
 
+// Status indicator component
+const StatusIndicator = ({ status }: { status?: MessageStatus }) => {
+  if (!status) return null;
+  
+  const statusConfig = {
+    sent: { icon: Check, color: "text-gray-400", bg: "bg-gray-100" },
+    delivered: { icon: CheckCheck, color: "text-emerald-500", bg: "bg-emerald-50" },
+    read: { icon: CheckCheck, color: "text-blue-500", bg: "bg-blue-50" },
+    failed: { icon: AlertCircle, color: "text-red-500", bg: "bg-red-50" },
+  };
+  
+  const config = statusConfig[status] || statusConfig.sent;
+  const Icon = config.icon;
+  
+  return (
+    <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full ${config.bg}`}>
+      <Icon className={`h-3 w-3 ${config.color}`} />
+      <span className={`text-[10px] font-medium capitalize ${config.color}`}>{status}</span>
+    </div>
+  );
+};
+
 // Skeleton loader for conversation items
 const ConversationSkeleton = () => (
-  <div className="p-3 md:p-5 space-y-2 md:space-y-3 border-b border-gray-100">
-    <div className="flex items-start justify-between">
-      <Skeleton className="h-4 md:h-5 w-20 md:w-24" />
-      <Skeleton className="h-3 md:h-4 w-16 md:w-20" />
+  <div className="p-4 space-y-3">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-10 w-10 rounded-full" />
+        <div className="space-y-1.5">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-3 w-16" />
+        </div>
+      </div>
+      <Skeleton className="h-4 w-14" />
     </div>
-    <div className="space-y-2">
-      <Skeleton className="h-3 md:h-4 w-full" />
-      <Skeleton className="h-3 md:h-4 w-3/4" />
+    <div className="pl-13 space-y-2">
+      <Skeleton className="h-3 w-full" />
+      <Skeleton className="h-3 w-2/3" />
     </div>
   </div>
 );
@@ -38,13 +65,13 @@ export const ConversationList = ({
   const itemsPerPage = 20;
   const { data: conversations = [], isLoading } = useUniqueConversations();
   
-  // Fallback to ensure we always have data
   const safeConversations = conversations || [];
   
-  // Parse timestamp safely and consistently across browsers.
-  // If backend sends "YYYY-MM-DD HH:mm" (no timezone), assume it's UTC then display in user's local time.
-  const parseTimestamp = (timestamp: string): Date => {
-    const m = timestamp.match(
+  const parseTimestamp = (timestamp: string | null | undefined): Date => {
+    const ts = (timestamp ?? "").trim();
+    if (!ts) return new Date(0);
+
+    const m = ts.match(
       /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/
     );
 
@@ -62,11 +89,9 @@ export const ConversationList = ({
       );
     }
 
-    // ISO strings with timezone (e.g. ...Z) will be handled correctly by Date().
-    return new Date(timestamp);
+    return new Date(ts);
   };
 
-  // Sort by timestamp descending (newest first) and filter
   const filteredConversations = safeConversations
     .filter(conv => {
       const searchLower = searchTerm.toLowerCase();
@@ -79,19 +104,20 @@ export const ConversationList = ({
     })
     .sort((a, b) => parseTimestamp(b.timestamp).getTime() - parseTimestamp(a.timestamp).getTime());
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredConversations.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedConversations = filteredConversations.slice(startIndex, startIndex + itemsPerPage);
 
-  // Reset to page 1 when search changes
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
     setCurrentPage(1);
   };
 
-  const formatTimestamp = (timestamp: string) => {
+  const formatTimestamp = (timestamp: string | null | undefined) => {
     const date = parseTimestamp(timestamp);
+    const time = date.getTime();
+    if (!Number.isFinite(time) || time === 0) return "";
+    
     const now = new Date();
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
     
@@ -100,7 +126,7 @@ export const ConversationList = ({
         hour: '2-digit',
         minute: '2-digit'
       });
-    } else if (diffInHours < 168) { // Less than 7 days
+    } else if (diffInHours < 168) {
       return date.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
         weekday: 'short',
         hour: '2-digit',
@@ -114,97 +140,118 @@ export const ConversationList = ({
     }
   };
 
-  const truncateText = (text: string, maxLength: number = 80) => {
-    return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+  const truncateText = (text: string | null | undefined, maxLength: number = 80) => {
+    const safeText = text ?? "";
+    return safeText.length > maxLength ? safeText.substring(0, maxLength) + "..." : safeText;
   };
 
   return (
-    <Card className="h-full bg-white/80 backdrop-blur-sm border-gray-200/60 shadow-xl shadow-gray-200/50 overflow-hidden">
-      <CardHeader className="pb-3 md:pb-4 border-b border-gray-100 bg-gradient-to-r from-white to-gray-50/50 px-3 md:px-6 pt-3 md:pt-6">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 md:gap-3 text-base md:text-xl">
-            <div className="p-1.5 md:p-2 rounded-lg bg-primary/10">
-              <MessageCircle className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+    <Card className="h-full bg-white border-0 shadow-lg shadow-gray-200/60 overflow-hidden rounded-2xl">
+      {/* Header */}
+      <CardHeader className="pb-4 border-b border-gray-100/80 bg-white px-4 md:px-6 pt-5">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/25">
+                <MessageCircle className="h-5 w-5 text-white" />
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
             </div>
-            <span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-              {t('conversations')}
-            </span>
-          </CardTitle>
-          {!isLoading && safeConversations.length > 0 && (
-            <Badge variant="secondary" className="px-2 md:px-3 py-0.5 md:py-1 text-xs md:text-sm font-semibold">
-              {filteredConversations.length} {filteredConversations.length === 1 ? t('conversation') : t('conversations')}
-            </Badge>
-          )}
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">{t('conversations')}</h2>
+              {!isLoading && safeConversations.length > 0 && (
+                <p className="text-xs text-gray-500">{filteredConversations.length} {t('total')}</p>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="relative mt-3 md:mt-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
+        
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
           <Input
             placeholder={t('searchConversations')}
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="pl-10 bg-white border-gray-200 focus:ring-2 focus:ring-primary/20 transition-all text-sm md:text-base"
+            className="pl-10 h-11 bg-gray-50/80 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all text-sm placeholder:text-gray-400"
           />
         </div>
       </CardHeader>
+
       <CardContent className="p-0">
-        <div className="max-h-[calc(100vh-280px)] md:max-h-[calc(100vh-320px)] overflow-y-auto custom-scrollbar">
+        <div className="max-h-[calc(100vh-280px)] md:max-h-[calc(100vh-300px)] overflow-y-auto">
           {isLoading ? (
-            <div className="space-y-0">
+            <div className="divide-y divide-gray-50">
               {[...Array(5)].map((_, i) => (
                 <ConversationSkeleton key={i} />
               ))}
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-50">
               {paginatedConversations.map((conversation, index) => (
                 <div
                   key={conversation.conversation_id}
                   onClick={() => {
                     console.log('🖱️ [ConversationList] Conversation clicked:', conversation.conversation_id);
-                    console.log('📋 [ConversationList] Full conversation object:', conversation);
                     onConversationSelect(conversation.conversation_id);
                   }}
-                  style={{ animationDelay: `${index * 50}ms` }}
-                  className={`group relative p-3 md:p-5 cursor-pointer transition-all duration-300 hover:bg-gradient-to-r hover:from-primary/5 hover:to-transparent animate-in fade-in slide-in-from-left-4 ${
+                  style={{ animationDelay: `${index * 30}ms` }}
+                  className={`group relative cursor-pointer transition-all duration-200 animate-in fade-in slide-in-from-bottom-2 ${
                     selectedConversationId === conversation.conversation_id 
-                      ? 'bg-gradient-to-r from-primary/10 to-primary/5 border-l-4 border-l-primary shadow-inner' 
-                      : 'hover:shadow-md'
+                      ? 'bg-primary/5' 
+                      : 'hover:bg-gray-50/80'
                   }`}
                 >
-                  {/* Hover indicator */}
-                  <div className="absolute right-0 top-0 bottom-0 w-1 bg-primary transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top hidden md:block" />
+                  {/* Selected indicator */}
+                  {selectedConversationId === conversation.conversation_id && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />
+                  )}
                   
-                  <div className="flex items-start justify-between mb-2 md:mb-3">
-                    <Badge 
-                      variant="outline" 
-                      className="text-[10px] md:text-xs border-gray-300 bg-white/50 font-mono px-1.5 md:px-2 py-0.5 md:py-1 hover:bg-primary/10 transition-colors truncate max-w-[120px] md:max-w-none"
-                    >
-                      #{conversation.conversation_id}
-                    </Badge>
-                    <div className="flex items-center gap-1 md:gap-1.5 text-[10px] md:text-xs text-gray-500 bg-gray-50 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full flex-shrink-0">
-                      <Clock className="h-2.5 w-2.5 md:h-3 md:w-3" />
-                      {formatTimestamp(conversation.timestamp)}
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2 md:space-y-2.5">
-                    <div className="text-xs md:text-sm">
-                      <div className="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1">
-                        <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-blue-500" />
-                        <span className="font-semibold text-gray-700 text-[10px] md:text-xs uppercase tracking-wide">{t('customer')}</span>
+                  <div className="p-4 md:p-5">
+                    {/* Top row: Avatar, ID, Time */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="relative flex-shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                            <User className="h-5 w-5 text-gray-500" />
+                          </div>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-900 text-sm truncate">
+                            #{conversation.conversation_id}
+                          </p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-xs text-gray-500">{formatTimestamp(conversation.timestamp)}</span>
+                            {conversation.latestStatus && (
+                              <StatusIndicator status={conversation.latestStatus} />
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-gray-900 leading-relaxed pl-2.5 md:pl-3.5 line-clamp-2" dir="auto">
-                        {truncateText(conversation.inbound, 60)}
-                      </p>
+                      <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-gray-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
                     </div>
-                    <div className="text-xs md:text-sm">
-                      <div className="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1">
-                        <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-green-500" />
-                        <span className="font-semibold text-gray-700 text-[10px] md:text-xs uppercase tracking-wide">{t('response')}</span>
+                    
+                    {/* Message preview */}
+                    <div className="space-y-2.5 pl-13">
+                      {/* Customer message */}
+                      <div className="flex items-start gap-2">
+                        <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <User className="h-3 w-3 text-blue-600" />
+                        </div>
+                        <p className="text-sm text-gray-700 leading-relaxed line-clamp-1" dir="auto">
+                          {truncateText(conversation.inbound, 50)}
+                        </p>
                       </div>
-                      <p className="text-gray-700 leading-relaxed pl-2.5 md:pl-3.5 line-clamp-2" dir="auto">
-                        {truncateText(conversation.outbound, 60)}
-                      </p>
+                      
+                      {/* Response */}
+                      <div className="flex items-start gap-2">
+                        <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Bot className="h-3 w-3 text-emerald-600" />
+                        </div>
+                        <p className="text-sm text-gray-500 leading-relaxed line-clamp-1" dir="auto">
+                          {truncateText(conversation.outbound, 50)}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -212,15 +259,16 @@ export const ConversationList = ({
             </div>
           )}
           
+          {/* Empty state */}
           {!isLoading && filteredConversations.length === 0 && (
-            <div className="p-8 md:p-16 text-center">
-              <div className="inline-flex items-center justify-center w-14 h-14 md:w-20 md:h-20 rounded-full bg-gray-100 mb-3 md:mb-4">
-                <Inbox className="h-7 w-7 md:h-10 md:w-10 text-gray-400" />
+            <div className="p-12 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gray-100 mb-4">
+                <Inbox className="h-8 w-8 text-gray-400" />
               </div>
-              <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-1 md:mb-2">
+              <h3 className="text-base font-semibold text-gray-900 mb-1">
                 {searchTerm ? t('noMatchesFound') : t('noConversationsYet')}
               </h3>
-              <p className="text-gray-500 text-xs md:text-sm">
+              <p className="text-gray-500 text-sm">
                 {searchTerm 
                   ? t('tryAdjustingSearch') 
                   : t('startConversationToSee')}
@@ -231,13 +279,13 @@ export const ConversationList = ({
         
         {/* Pagination */}
         {!isLoading && totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 px-4 py-4 border-t border-gray-100 bg-gradient-to-r from-gray-50/80 to-white/80 backdrop-blur-sm">
+          <div className="flex items-center justify-center gap-1.5 px-4 py-4 border-t border-gray-100 bg-gray-50/50">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setCurrentPage(1)}
               disabled={currentPage === 1}
-              className="h-9 px-3 text-xs font-medium text-gray-600 hover:text-primary hover:bg-primary/10 disabled:opacity-40 transition-all"
+              className="h-8 px-2.5 text-xs text-gray-500 hover:text-gray-900 disabled:opacity-40"
             >
               {t('first')}
             </Button>
@@ -246,12 +294,12 @@ export const ConversationList = ({
               size="icon"
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary disabled:opacity-40 transition-all"
+              className="h-8 w-8 rounded-lg hover:bg-gray-200 disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             
-            <div className="flex items-center gap-1 mx-2">
+            <div className="flex items-center gap-1 mx-1">
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 let pageNum: number;
                 if (totalPages <= 5) {
@@ -267,10 +315,10 @@ export const ConversationList = ({
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`h-9 min-w-[36px] px-3 rounded-full text-sm font-medium transition-all duration-200 ${
+                    className={`h-8 min-w-[32px] px-2.5 rounded-lg text-sm font-medium transition-all ${
                       currentPage === pageNum
-                        ? 'bg-primary text-white shadow-md shadow-primary/30 scale-105'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        ? 'bg-primary text-white shadow-sm'
+                        : 'text-gray-600 hover:bg-gray-200'
                     }`}
                   >
                     {pageNum}
@@ -284,7 +332,7 @@ export const ConversationList = ({
               size="icon"
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="h-9 w-9 rounded-full hover:bg-primary/10 hover:text-primary disabled:opacity-40 transition-all"
+              className="h-8 w-8 rounded-lg hover:bg-gray-200 disabled:opacity-40"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -293,7 +341,7 @@ export const ConversationList = ({
               size="sm"
               onClick={() => setCurrentPage(totalPages)}
               disabled={currentPage === totalPages}
-              className="h-9 px-3 text-xs font-medium text-gray-600 hover:text-primary hover:bg-primary/10 disabled:opacity-40 transition-all"
+              className="h-8 px-2.5 text-xs text-gray-500 hover:text-gray-900 disabled:opacity-40"
             >
               {t('last')}
             </Button>
