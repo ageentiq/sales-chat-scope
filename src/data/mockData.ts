@@ -1,3 +1,14 @@
+export type MessageStatus = 'sent' | 'delivered' | 'read' | 'failed';
+
+export interface StatusHistoryEntry {
+  messageId: string;
+  waId: string;
+  status: MessageStatus;
+  timestamp: number;
+  timestampFormatted: string;
+  executionId: string;
+}
+
 export interface ConversationMessage {
   _id: string | { $oid: string };
   conversation_id: string;
@@ -5,6 +16,12 @@ export interface ConversationMessage {
   outbound: string;
   media: string | null;
   timestamp: string;
+  message_id?: string;
+  latestStatus?: MessageStatus;
+  latestTimestamp?: number;
+  latestTimestampFormatted?: string;
+  statusCount?: number;
+  statusHistory?: StatusHistoryEntry[];
 }
 
 export const mockConversations: ConversationMessage[] = [
