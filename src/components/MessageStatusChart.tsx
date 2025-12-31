@@ -96,32 +96,7 @@ export const MessageStatusChart = () => {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-      {/* Total Tracked Card */}
-      <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-          <div>
-            <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">
-              {t('messageStatusAnalytics') || 'Message Status'}
-            </CardTitle>
-            <p className="text-[9px] md:text-[10px] text-gray-400 mt-0.5">
-              {t('trackingStartedAt') || 'Since'} 03:28 PM
-            </p>
-          </div>
-          <div className="p-2 bg-primary/5 rounded-lg group-hover:bg-primary/10 transition-colors">
-            <Send className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-          </div>
-        </CardHeader>
-        <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-        <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">
-          {statusCounts.total}
-        </div>
-        <p className="text-[10px] md:text-xs text-gray-500 mt-1">
-          {t('messagesTracked') || 'messages tracked'}
-        </p>
-        </CardContent>
-      </Card>
-
+    <div className="grid grid-cols-3 gap-4 md:gap-6">
       {/* Status Cards */}
       {statusItems.map((item) => {
         const Icon = item.icon;
