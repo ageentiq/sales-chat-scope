@@ -9,53 +9,84 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware - CORS configuration
-const allowedOrigins = [
+const baseAllowedOrigins = [
   'https://sales.agentiq.llc',
-  'https://65d6b0fb-6f75-4b0c-aa23-bc1d78fd7192.lovableproject.com'
+  'https://65d6b0fb-6f75-4b0c-aa23-bc1d78fd7192.lovableproject.com',
 ];
+
+// Optional extra origins via env (comma-separated)
+const envAllowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+const allowedOrigins = Array.from(new Set([...baseAllowedOrigins, ...envAllowedOrigins]));
+
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+
+  // Allow Lovable preview subdomains (e.g. https://id-preview--<id>.lovable.app)
+  if (/^https:\/\/id-preview--[a-z0-9-]+\.lovable\.app$/i.test(origin)) return true;
+
+  // (Optional) allow local dev
+  if (/^http:\/\/localhost(?::\d+)?$/i.test(origin)) return true;
+
+  return false;
+};
 
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) === -1) {
+
+    if (!isAllowedOrigin(origin)) {
       console.error('❌ [CORS] Blocked origin:', origin);
       console.log('✅ [CORS] Allowed origins:', allowedOrigins);
       const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}. Allowed origins: ${allowedOrigins.join(', ')}`;
       return callback(new Error(msg), false);
     }
-    
+
     return callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
+    'Content-Type',
+    'Authorization',
     'X-Requested-With',
     'Accept',
     'Origin',
     'Access-Control-Allow-Credentials',
-    'ngrok-skip-browser-warning'
+    'ngrok-skip-browser-warning',
   ],
   exposedHeaders: [
     'Content-Length',
     'Authorization',
     'Access-Control-Allow-Origin',
-    'Access-Control-Allow-Credentials'
+    'Access-Control-Allow-Credentials',
   ],
-  maxAge: 86400 // 24 hours
+  maxAge: 86400, // 24 hours
 };
 
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 
-// Handle preflight requests
+// Handle preflight requests (must not use "*" when credentials=true)
 app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, ngrok-skip-browser-warning, Accept, Origin, X-Requested-With');
+  const origin = req.headers.origin;
+
+  if (origin && isAllowedOrigin(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+  }
+
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Authorization, ngrok-skip-browser-warning, Accept, Origin, X-Requested-With'
+  );
   res.sendStatus(200);
 });
 
