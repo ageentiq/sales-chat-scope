@@ -8,11 +8,19 @@ import { getMessageTimeMs } from "@/lib/timestamps";
 // Status tracking started at 03:28 PM on Dec 31, 2025 (UTC+3 = 12:28 PM UTC)
 const STATUS_TRACKING_START = new Date('2025-12-31T12:28:00.000Z').getTime();
 
+// Function to check if phone number is valid (966 + 9 digits = 12 total)
+const isValidPhoneNumber = (conversationId: string): boolean => {
+  const validPhonePattern = /^966\d{9}$/;
+  return validPhonePattern.test(conversationId);
+};
+
 interface StatusCounts {
   sent: number;
   delivered: number;
   read: number;
   failed: number;
+  failedPhoneNumber: number;
+  failedOther: number;
   total: number;
 }
 
@@ -21,7 +29,7 @@ export const MessageStatusChart = () => {
   const { data: allConversations = [] } = useConversations();
 
   const statusCounts = useMemo<StatusCounts>(() => {
-    const counts: StatusCounts = { sent: 0, delivered: 0, read: 0, failed: 0, total: 0 };
+    const counts: StatusCounts = { sent: 0, delivered: 0, read: 0, failed: 0, failedPhoneNumber: 0, failedOther: 0, total: 0 };
 
     allConversations.forEach((msg) => {
       // Only count messages after status tracking started
@@ -35,7 +43,15 @@ export const MessageStatusChart = () => {
       if (status === 'sent') counts.sent++;
       else if (status === 'delivered') counts.delivered++;
       else if (status === 'read') counts.read++;
-      else if (status === 'failed') counts.failed++;
+      else if (status === 'failed') {
+        counts.failed++;
+        // Categorize failure reason
+        if (!isValidPhoneNumber(msg.conversation_id || '')) {
+          counts.failedPhoneNumber++;
+        } else {
+          counts.failedOther++;
+        }
+      }
       
       counts.total++;
     });
@@ -72,6 +88,10 @@ export const MessageStatusChart = () => {
       icon: AlertTriangle,
       color: 'text-red-500',
       bgColor: 'bg-red-50',
+      subCategories: [
+        { label: t('incorrectNumber') || 'Incorrect number', count: statusCounts.failedPhoneNumber },
+        { label: t('otherReason') || 'Other reason', count: statusCounts.failedOther },
+      ],
     },
   ];
 
@@ -121,12 +141,25 @@ export const MessageStatusChart = () => {
               <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">
                 {item.count}
               </div>
-              <div className="mt-2 pt-2 border-t border-gray-100">
-                <p className="text-[10px] md:text-xs text-gray-500 flex items-center gap-1">
-                  <span className={`inline-block w-2 h-2 rounded-full ${item.bgColor}`}></span>
-                  {percentage}% {t('ofTotal') || 'of total'}
-                </p>
-              </div>
+              {/* Sub-categories for failed */}
+              {item.subCategories && item.count > 0 && (
+                <div className="mt-2 pt-2 border-t border-gray-100 space-y-1">
+                  {item.subCategories.map((sub) => (
+                    <div key={sub.label} className="flex items-center justify-between text-[9px] md:text-[10px]">
+                      <span className="text-gray-500">{sub.label}</span>
+                      <span className="font-semibold text-gray-700">{sub.count}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {!item.subCategories && (
+                <div className="mt-2 pt-2 border-t border-gray-100">
+                  <p className="text-[10px] md:text-xs text-gray-500 flex items-center gap-1">
+                    <span className={`inline-block w-2 h-2 rounded-full ${item.bgColor}`}></span>
+                    {percentage}% {t('ofTotal') || 'of total'}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         );
