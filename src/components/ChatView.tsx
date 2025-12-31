@@ -27,14 +27,14 @@ const MessageSkeleton = ({ align = "left" }: { align?: "left" | "right" }) => (
 );
 
 // Status indicator component
-const MessageStatusIndicator = ({ status }: { status?: MessageStatus }) => {
+const MessageStatusIndicator = ({ status, t }: { status?: MessageStatus; t: (key: string) => string }) => {
   if (!status) return null;
   
   const statusConfig = {
-    sent: { icon: Check, color: 'text-gray-400', label: 'Sent' },
-    delivered: { icon: CheckCheck, color: 'text-green-500', label: 'Delivered' },
-    read: { icon: CheckCheck, color: 'text-blue-500', label: 'Read' },
-    failed: { icon: AlertTriangle, color: 'text-red-500', label: 'Failed' },
+    sent: { icon: Check, color: 'text-gray-400', label: t('statusSent') },
+    delivered: { icon: CheckCheck, color: 'text-green-500', label: t('statusDelivered') },
+    read: { icon: CheckCheck, color: 'text-blue-500', label: t('statusRead') },
+    failed: { icon: AlertTriangle, color: 'text-red-500', label: t('statusFailed') },
   };
   
   const config = statusConfig[status];
@@ -52,11 +52,13 @@ const MessageStatusIndicator = ({ status }: { status?: MessageStatus }) => {
 const FailedMessageModal = ({ 
   message, 
   onClose,
-  isArabic 
+  isArabic,
+  t
 }: { 
   message: { inbound: string; outbound: string; conversation_id: string; timestamp: string };
   onClose: () => void;
   isArabic: (text: string) => boolean;
+  t: (key: string) => string;
 }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -69,8 +71,8 @@ const FailedMessageModal = ({
                 <AlertTriangle className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="font-bold text-lg">Message Failed</h3>
-                <p className="text-red-100 text-sm">Delivery unsuccessful</p>
+                <h3 className="font-bold text-lg">{t('messageFailed')}</h3>
+                <p className="text-red-100 text-sm">{t('statusFailed')}</p>
               </div>
             </div>
             <Button 
@@ -90,12 +92,12 @@ const FailedMessageModal = ({
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-semibold text-red-800">Possible reasons:</p>
+                <p className="text-sm font-semibold text-red-800">{t('messageFailedDescription')}</p>
                 <ul className="mt-2 text-sm text-red-700 space-y-1">
-                  <li>• Phone number may be incorrect</li>
-                  <li>• Number does not have WhatsApp</li>
-                  <li>• User has blocked the sender</li>
-                  <li>• Network or service issue</li>
+                  <li>• {t('failedReason1')}</li>
+                  <li>• {t('failedReason2')}</li>
+                  <li>• {t('failedReason3')}</li>
+                  <li>• {t('failedReason4')}</li>
                 </ul>
               </div>
             </div>
@@ -108,7 +110,7 @@ const FailedMessageModal = ({
             </div>
             
             <div className="bg-gray-50 rounded-xl p-4">
-              <p className="text-xs font-semibold text-gray-500 mb-2">Failed Message:</p>
+              <p className="text-xs font-semibold text-gray-500 mb-2">{t('failedMessageContent')}:</p>
               <p 
                 className={`text-sm text-gray-700 ${isArabic(message.outbound) ? 'text-right' : 'text-left'}`}
                 dir={isArabic(message.outbound) ? 'rtl' : 'ltr'}
@@ -122,7 +124,7 @@ const FailedMessageModal = ({
         {/* Footer */}
         <div className="border-t border-gray-100 p-4 bg-gray-50">
           <Button onClick={onClose} className="w-full">
-            Close
+            {t('close')}
           </Button>
         </div>
       </div>
@@ -294,7 +296,7 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
                   {/* Status indicator */}
                   {message.latestStatus && (
                     <div className="mt-1 md:mt-1.5">
-                      <MessageStatusIndicator status={message.latestStatus} />
+                      <MessageStatusIndicator status={message.latestStatus} t={t} />
                     </div>
                   )}
                 </div>
@@ -392,6 +394,7 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
           message={failedMessage} 
           onClose={() => setFailedMessage(null)} 
           isArabic={isArabic}
+          t={t}
         />
       )}
     </Card>
