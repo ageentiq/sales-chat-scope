@@ -139,8 +139,11 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   
   // Parse timestamp safely and consistently across browsers.
   // If backend sends "YYYY-MM-DD HH:mm" (no timezone), assume it's UTC then display in user's local time.
-  const parseTimestamp = (timestamp: string): Date => {
-    const m = timestamp.match(
+  const parseTimestamp = (timestamp: string | null | undefined): Date => {
+    const ts = (timestamp ?? "").trim();
+    if (!ts) return new Date(0);
+
+    const m = ts.match(
       /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/
     );
 
@@ -159,7 +162,7 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
     }
 
     // ISO strings with timezone (e.g. ...Z) will be handled correctly by Date().
-    return new Date(timestamp);
+    return new Date(ts);
   };
 
   // Sort messages by timestamp ascending (oldest first for chat view)
@@ -170,8 +173,12 @@ export const ChatView = ({ conversationId, onBack }: ChatViewProps) => {
   console.log('📨 [ChatView] Messages received:', messages.length, 'messages');
   console.log('📊 [ChatView] Analysis received:', analysis);
 
-  const formatTimestamp = (timestamp: string) => {
-    return parseTimestamp(timestamp).toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
+  const formatTimestamp = (timestamp: string | null | undefined) => {
+    const d = parseTimestamp(timestamp);
+    const time = d.getTime();
+    if (!Number.isFinite(time) || time === 0) return "";
+
+    return d.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
       hour: '2-digit',
       minute: '2-digit',
       month: 'short',
