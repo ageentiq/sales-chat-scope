@@ -123,7 +123,14 @@ const Dashboard = () => {
     };
   }, [safeUniqueConversations, safeAllConversations, dateRange]);
 
-  const totalConversations = filteredData.uniqueConversations.length;
+  const totalConversations = useMemo(() => {
+    const ids = new Set<string>();
+    filteredData.allConversations.forEach((m) => {
+      if (m?.conversation_id) ids.add(m.conversation_id);
+    });
+    return ids.size;
+  }, [filteredData.allConversations]);
+
   const totalMessages = filteredData.allConversations.length;
   
   // Calculate conversation message counts for active filtering (filtered)
@@ -226,44 +233,71 @@ const Dashboard = () => {
   const avgMessagesTrendColor = avgMessagesTrend >= 0 ? 'text-green-600' : 'text-red-600';
   const avgMessagesTrendText = avgMessagesTrend >= 0 ? 'moreEngagement' : 'lessEngagement';
 
-  const conversationsToday = safeUniqueConversations.filter(conv => {
-    const today = new Date();
-    const convMs = getMessageTimeMs(conv);
-    const convDate = new Date(convMs);
-    return convDate.getDate() === today.getDate() &&
-           convDate.getMonth() === today.getMonth() &&
-           convDate.getFullYear() === today.getFullYear();
-  }).length;
+  // Static cards (always based on current time windows, not the global filter)
+  // To keep numbers consistent with the filtered "Last 7 Days" view, these are computed from messages-in-window.
 
-  // Calculate active conversations today (2+ messages) - uses global active IDs
-  const activeConversationsToday = safeUniqueConversations.filter(conv => {
-    const today = new Date();
-    const convMs = getMessageTimeMs(conv);
-    const convDate = new Date(convMs);
-    const isToday = convDate.getDate() === today.getDate() &&
-                    convDate.getMonth() === today.getMonth() &&
-                    convDate.getFullYear() === today.getFullYear();
-    return isToday && globalActiveConversationIds.has(conv.conversation_id);
-  }).length;
+  const conversationsToday = useMemo(() => {
+    const { from, to } = getDateRangeForOption("today");
+    if (!from || !to) return 0;
 
-  // Calculate conversations in the last 7 days (fixed - not affected by date filter)
-  // Uses same logic as filter: 7 days = today + 6 days back
-  const conversationsLastSevenDays = safeUniqueConversations.filter(conv => {
-    const convMs = getMessageTimeMs(conv);
-    const convDate = new Date(convMs);
-    const now = new Date();
-    const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
-    return convDate >= weekAgo;
-  }).length;
+    const ids = new Set<string>();
+    safeAllConversations.forEach((msg) => {
+      if (!msg?.conversation_id) return;
+      const ms = getMessageTimeMs(msg);
+      if (ms >= from.getTime() && ms <= to.getTime()) {
+        ids.add(msg.conversation_id);
+      }
+    });
+    return ids.size;
+  }, [safeAllConversations]);
 
-  // Calculate active conversations in the last 7 days (fixed - not affected by date filter)
-  const activeConversationsLastSevenDays = safeUniqueConversations.filter(conv => {
-    const convMs = getMessageTimeMs(conv);
-    const convDate = new Date(convMs);
-    const now = new Date();
-    const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
-    return convDate >= weekAgo && globalActiveConversationIds.has(conv.conversation_id);
-  }).length;
+  const activeConversationsToday = useMemo(() => {
+    const { from, to } = getDateRangeForOption("today");
+    if (!from || !to) return 0;
+
+    const counts: Record<string, number> = {};
+    safeAllConversations.forEach((msg) => {
+      if (!msg?.conversation_id) return;
+      const ms = getMessageTimeMs(msg);
+      if (ms >= from.getTime() && ms <= to.getTime()) {
+        counts[msg.conversation_id] = (counts[msg.conversation_id] || 0) + 1;
+      }
+    });
+
+    return Object.values(counts).filter((c) => c >= 2).length;
+  }, [safeAllConversations]);
+
+  const conversationsLastSevenDays = useMemo(() => {
+    const { from, to } = getDateRangeForOption("last7Days");
+    if (!from || !to) return 0;
+
+    const ids = new Set<string>();
+    safeAllConversations.forEach((msg) => {
+      if (!msg?.conversation_id) return;
+      const ms = getMessageTimeMs(msg);
+      if (ms >= from.getTime() && ms <= to.getTime()) {
+        ids.add(msg.conversation_id);
+      }
+    });
+
+    return ids.size;
+  }, [safeAllConversations]);
+
+  const activeConversationsLastSevenDays = useMemo(() => {
+    const { from, to } = getDateRangeForOption("last7Days");
+    if (!from || !to) return 0;
+
+    const counts: Record<string, number> = {};
+    safeAllConversations.forEach((msg) => {
+      if (!msg?.conversation_id) return;
+      const ms = getMessageTimeMs(msg);
+      if (ms >= from.getTime() && ms <= to.getTime()) {
+        counts[msg.conversation_id] = (counts[msg.conversation_id] || 0) + 1;
+      }
+    });
+
+    return Object.values(counts).filter((c) => c >= 2).length;
+  }, [safeAllConversations]);
 
   // Calculate average response time based on time between messages in a conversation
   // Returns both all conversations and active-only (2+ messages) stats
