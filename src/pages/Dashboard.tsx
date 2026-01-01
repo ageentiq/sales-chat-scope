@@ -247,11 +247,12 @@ const Dashboard = () => {
   }).length;
 
   // Calculate conversations in the last 7 days (fixed - not affected by date filter)
+  // Uses same logic as filter: 7 days = today + 6 days back
   const conversationsLastSevenDays = safeUniqueConversations.filter(conv => {
     const convMs = getMessageTimeMs(conv);
     const convDate = new Date(convMs);
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
+    const now = new Date();
+    const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
     return convDate >= weekAgo;
   }).length;
 
@@ -259,8 +260,8 @@ const Dashboard = () => {
   const activeConversationsLastSevenDays = safeUniqueConversations.filter(conv => {
     const convMs = getMessageTimeMs(conv);
     const convDate = new Date(convMs);
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
+    const now = new Date();
+    const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0, 0);
     return convDate >= weekAgo && globalActiveConversationIds.has(conv.conversation_id);
   }).length;
 
