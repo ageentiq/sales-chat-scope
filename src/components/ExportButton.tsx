@@ -17,13 +17,13 @@ export function ExportButton({ onClick, className = "" }: ExportButtonProps) {
         <Button
           variant="ghost"
           size="icon"
-          className={`h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity ${className}`}
+          className={`h-6 w-6 opacity-0 group-hover:opacity-100 transition-all hover:bg-primary/10 ${className}`}
           onClick={(e) => {
             e.stopPropagation();
             onClick();
           }}
         >
-          <Download className="h-3 w-3 text-gray-400 hover:text-gray-600" />
+          <Download className="h-3 w-3 text-muted-foreground transition-colors hover:text-primary" />
         </Button>
       </TooltipTrigger>
       <TooltipContent>
