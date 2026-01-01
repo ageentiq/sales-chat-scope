@@ -184,6 +184,15 @@ const translations = {
     messageStatusAnalytics: 'حالة الرسائل',
     trackingStartedAt: 'منذ',
     messagesTracked: 'رسالة متتبعة',
+    // Export features
+    exportData: 'تصدير البيانات',
+    exportSuccessful: 'تم التصدير بنجاح',
+    downloadedWithRows: 'تم تحميل {filename} مع {rowCount} صفوف',
+    // Transition stats
+    noResponse: 'بدون رد',
+    futureInterest: 'اهتمام مستقبلي',
+    notInterested: 'غير مهتم',
+    createProspect: 'إنشاء عميل محتمل',
   },
   en: {
     home: 'Home',
@@ -358,6 +367,15 @@ const translations = {
     messageStatusAnalytics: 'Message Status',
     trackingStartedAt: 'Since',
     messagesTracked: 'messages tracked',
+    // Export features
+    exportData: 'Export data',
+    exportSuccessful: 'Export successful',
+    downloadedWithRows: 'Downloaded {filename} with {rowCount} rows',
+    // Transition stats
+    noResponse: 'No Response',
+    futureInterest: 'Future Interest',
+    notInterested: 'Not Interested',
+    createProspect: 'Create Prospect',
   },
 };
 
