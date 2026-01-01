@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, subMonths } from "date-fns";
-import { CalendarIcon, ChevronDown } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -64,7 +64,19 @@ export function getDateRangeForOption(option: DateFilterOption): DateRange {
 export function DateFilter({ value, dateRange, onChange }: DateFilterProps) {
   const { t } = useLanguage();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [tempRange, setTempRange] = useState<DateRange>(dateRange);
+  const [tempRange, setTempRange] = useState<DateRange>({ from: null, to: null });
+  const [pendingDateRange, setPendingDateRange] = useState(false);
+
+  // Handle delayed opening of calendar after select closes
+  useEffect(() => {
+    if (pendingDateRange) {
+      const timer = setTimeout(() => {
+        setIsCalendarOpen(true);
+        setPendingDateRange(false);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [pendingDateRange]);
 
   const options: { value: DateFilterOption; label: string }[] = [
     { value: "allTime", label: t("allTime") },
@@ -79,8 +91,8 @@ export function DateFilter({ value, dateRange, onChange }: DateFilterProps) {
   const handleOptionChange = (newValue: string) => {
     const option = newValue as DateFilterOption;
     if (option === "dateRange") {
-      setIsCalendarOpen(true);
       setTempRange({ from: null, to: null });
+      setPendingDateRange(true);
     } else {
       const range = getDateRangeForOption(option);
       onChange(option, range);
@@ -107,26 +119,26 @@ export function DateFilter({ value, dateRange, onChange }: DateFilterProps) {
   return (
     <div className="flex items-center gap-2">
       <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-        <Select value={value} onValueChange={handleOptionChange}>
-          <SelectTrigger className="w-[180px] md:w-[200px] bg-white border-gray-200 text-sm">
-            <div className="flex items-center gap-2">
-              <CalendarIcon className="h-4 w-4 text-gray-500" />
-              <SelectValue>{getDisplayLabel()}</SelectValue>
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            {options.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
         <PopoverTrigger asChild>
-          <span className="hidden" />
+          <div className="relative">
+            <Select value={value} onValueChange={handleOptionChange}>
+              <SelectTrigger className="w-[180px] md:w-[200px] bg-white border-gray-200 text-sm">
+                <div className="flex items-center gap-2">
+                  <CalendarIcon className="h-4 w-4 text-gray-500" />
+                  <SelectValue>{getDisplayLabel()}</SelectValue>
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {options.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-auto p-0" align="start" sideOffset={8}>
           <div className="p-4 space-y-4">
             <div className="text-sm font-medium text-gray-700">
               {t("selectDateRange")}
@@ -164,7 +176,14 @@ export function DateFilter({ value, dateRange, onChange }: DateFilterProps) {
                 />
               </div>
             </div>
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsCalendarOpen(false)}
+                size="sm"
+              >
+                {t("cancel") || "Cancel"}
+              </Button>
               <Button
                 onClick={handleApplyRange}
                 disabled={!tempRange.from || !tempRange.to}
