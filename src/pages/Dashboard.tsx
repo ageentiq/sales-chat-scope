@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -8,6 +8,8 @@ import { ConversationsChart } from "@/components/ConversationsChart";
 import { MessageStatusChart } from "@/components/MessageStatusChart";
 import { DateFilter, DateFilterOption, DateRange, getDateRangeForOption } from "@/components/DateFilter";
 import { getMessageTimeMs } from "@/lib/timestamps";
+import { ExportButton } from "@/components/ExportButton";
+import { exportConversations, exportMessages, exportSummaryStats, exportMessageStatus } from "@/lib/exportUtils";
 
 const Dashboard = () => {
   const { t } = useLanguage();
@@ -485,6 +487,76 @@ const Dashboard = () => {
     : `↓ ${Math.abs(responseRateTrend).toFixed(1)}%`;
   const responseRateTrendColor = responseRateTrend >= 0 ? 'text-green-600' : 'text-red-600';
 
+  // Export handlers
+  const handleExportConversations = useCallback(() => {
+    const uniqueConvs = filteredData.uniqueConversations;
+    exportConversations(uniqueConvs, `conversations_${dateFilterOption}.csv`);
+  }, [filteredData.uniqueConversations, dateFilterOption]);
+
+  const handleExportMessages = useCallback(() => {
+    exportMessages(filteredData.allConversations, `messages_${dateFilterOption}.csv`);
+  }, [filteredData.allConversations, dateFilterOption]);
+
+  const handleExportToday = useCallback(() => {
+    const { from, to } = getDateRangeForOption("today");
+    if (!from || !to) return;
+    const todayConvs = safeAllConversations.filter((msg) => {
+      const ms = getMessageTimeMs(msg);
+      return ms >= from.getTime() && ms <= to.getTime();
+    });
+    exportMessages(todayConvs, 'conversations_today.csv');
+  }, [safeAllConversations]);
+
+  const handleExportLast7Days = useCallback(() => {
+    const { from, to } = getDateRangeForOption("last7Days");
+    if (!from || !to) return;
+    const weekConvs = safeAllConversations.filter((msg) => {
+      const ms = getMessageTimeMs(msg);
+      return ms >= from.getTime() && ms <= to.getTime();
+    });
+    exportMessages(weekConvs, 'conversations_last_7_days.csv');
+  }, [safeAllConversations]);
+
+  const handleExportMessageStatus = useCallback(() => {
+    exportMessageStatus(filteredData.allConversations, `message_status_${dateFilterOption}.csv`);
+  }, [filteredData.allConversations, dateFilterOption]);
+
+  const handleExportTransitionStats = useCallback(() => {
+    if (transitionStats) {
+      exportSummaryStats({
+        'Create Prospect': transitionStats.createProspect,
+        'Future Interest': transitionStats.futureInterest,
+        'Not Interested': transitionStats.notInterested,
+        'No Response': transitionStats.noResponse,
+        'Total': transitionStats.total
+      }, `transition_stats_${dateFilterOption}.csv`);
+    }
+  }, [transitionStats, dateFilterOption]);
+
+  const handleExportAvgMessages = useCallback(() => {
+    exportSummaryStats({
+      'Average Messages per Conversation': avgMessagesPerConversation,
+      'Last Week Average': lastWeekMsgAvg?.toFixed(1) || 'N/A',
+      'Previous Week Average': prevWeekMsgAvg?.toFixed(1) || 'N/A',
+      'Trend': avgMessagesTrendFormatted
+    }, `avg_messages_${dateFilterOption}.csv`);
+  }, [avgMessagesPerConversation, lastWeekMsgAvg, prevWeekMsgAvg, avgMessagesTrendFormatted, dateFilterOption]);
+
+  const handleExportResponseTime = useCallback(() => {
+    exportSummaryStats({
+      'Average Response Time (All)': avgResponseTime,
+      'Average Response Time (Active)': activeAvgResponseTime,
+      'Trend': avgResponseTimeTrendFormatted
+    }, `response_time_${dateFilterOption}.csv`);
+  }, [avgResponseTime, activeAvgResponseTime, avgResponseTimeTrendFormatted, dateFilterOption]);
+
+  const handleExportResponseRate = useCallback(() => {
+    exportSummaryStats({
+      'Response Rate': responseRate,
+      'Trend': responseRateTrendFormatted
+    }, `response_rate_${dateFilterOption}.csv`);
+  }, [responseRate, responseRateTrendFormatted, dateFilterOption]);
+
   if (isLoadingAll) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -524,16 +596,19 @@ const Dashboard = () => {
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
                 <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('totalConversations')}</CardTitle>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
-                      <Users className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{t('activeConversationsTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
+                <div className="flex items-center gap-1">
+                  <ExportButton onClick={handleExportConversations} />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
+                        <Users className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{t('activeConversationsTooltip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 <div className="flex items-end gap-4">
@@ -560,16 +635,19 @@ const Dashboard = () => {
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
                 <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('totalMessages')}</CardTitle>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
-                      <MessagesSquare className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{t('totalMessagesTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
+                <div className="flex items-center gap-1">
+                  <ExportButton onClick={handleExportMessages} />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
+                        <MessagesSquare className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{t('totalMessagesTooltip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{totalMessages}</div>
@@ -580,16 +658,19 @@ const Dashboard = () => {
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
                 <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('avgMessagesPerConversation')}</CardTitle>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
-                      <MessageCircle className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{t('avgMessagesPerConversationTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
+                <div className="flex items-center gap-1">
+                  <ExportButton onClick={handleExportAvgMessages} />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
+                        <MessageCircle className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{t('avgMessagesPerConversationTooltip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{avgMessagesPerConversation}</div>
@@ -613,16 +694,19 @@ const Dashboard = () => {
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
                 <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('conversationsToday')}</CardTitle>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
-                      <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{t('conversationsTodayTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
+                <div className="flex items-center gap-1">
+                  <ExportButton onClick={handleExportToday} />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
+                        <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{t('conversationsTodayTooltip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 <div className="flex items-end gap-4">
@@ -641,7 +725,7 @@ const Dashboard = () => {
           </div>
 
           {/* Message Status Cards */}
-          <MessageStatusChart conversations={filteredData.allConversations} />
+          <MessageStatusChart conversations={filteredData.allConversations} onExport={handleExportMessageStatus} />
 
           {/* Secondary Statistics Row */}
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -649,16 +733,19 @@ const Dashboard = () => {
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
                 <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('conversationsLastSevenDays')}</CardTitle>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
-                      <Activity className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{t('activeLastSevenDaysTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
+                <div className="flex items-center gap-1">
+                  <ExportButton onClick={handleExportLast7Days} />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
+                        <Activity className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{t('activeLastSevenDaysTooltip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 <div className="flex items-end gap-4">
@@ -685,16 +772,19 @@ const Dashboard = () => {
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
                 <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('avgResponseTimeFull')}</CardTitle>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
-                      <Clock className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{t('avgResponseTimeTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
+                <div className="flex items-center gap-1">
+                  <ExportButton onClick={handleExportResponseTime} />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
+                        <Clock className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{t('avgResponseTimeTooltip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{activeAvgResponseTime}</div>
@@ -715,16 +805,19 @@ const Dashboard = () => {
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group col-span-2 lg:col-span-1">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
                 <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('responseRate')}</CardTitle>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
-                      <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{t('responseRateTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
+                <div className="flex items-center gap-1">
+                  <ExportButton onClick={handleExportResponseRate} />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
+                        <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{t('responseRateTooltip')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
                 <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{responseRate}</div>
@@ -749,8 +842,11 @@ const Dashboard = () => {
                   <span className="block">Create Prospect</span>
                   <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">إنشاء صفقة</span>
                 </CardTitle>
-                <div className="p-2 bg-green-50 rounded-lg">
-                  <Briefcase className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
+                <div className="flex items-center gap-1">
+                  <ExportButton onClick={handleExportTransitionStats} />
+                  <div className="p-2 bg-green-50 rounded-lg">
+                    <Briefcase className="h-4 w-4 md:h-5 md:w-5 text-green-500" />
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
