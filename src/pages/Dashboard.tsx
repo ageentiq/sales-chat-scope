@@ -166,38 +166,42 @@ const Dashboard = () => {
   const avgMessagesTrendColor = avgMessagesTrend >= 0 ? 'text-green-600' : 'text-red-600';
   const avgMessagesTrendText = avgMessagesTrend >= 0 ? 'moreEngagement' : 'lessEngagement';
 
-  const conversationsToday = safeUniqueConversations.filter(conv => {
+  const conversationsToday = filteredData.uniqueConversations.filter(conv => {
     const today = new Date();
-    const convDate = new Date(conv.timestamp);
+    const convMs = getMessageTimeMs(conv);
+    const convDate = new Date(convMs);
     return convDate.getDate() === today.getDate() &&
            convDate.getMonth() === today.getMonth() &&
            convDate.getFullYear() === today.getFullYear();
   }).length;
 
-  // Calculate active conversations today (2+ messages) - uses global active IDs
-  const activeConversationsToday = safeUniqueConversations.filter(conv => {
+  // Calculate active conversations today (2+ messages) - uses filtered active IDs
+  const activeConversationsToday = filteredData.uniqueConversations.filter(conv => {
     const today = new Date();
-    const convDate = new Date(conv.timestamp);
+    const convMs = getMessageTimeMs(conv);
+    const convDate = new Date(convMs);
     const isToday = convDate.getDate() === today.getDate() &&
                     convDate.getMonth() === today.getMonth() &&
                     convDate.getFullYear() === today.getFullYear();
-    return isToday && globalActiveConversationIds.has(conv.conversation_id);
+    return isToday && activeConversationIds.has(conv.conversation_id);
   }).length;
 
-  // Calculate conversations in the last 7 days (fixed - not affected by date filter)
-  const conversationsLastSevenDays = safeUniqueConversations.filter(conv => {
-    const convDate = new Date(conv.timestamp);
+  // Calculate conversations in the last 7 days (uses filtered data)
+  const conversationsLastSevenDays = filteredData.uniqueConversations.filter(conv => {
+    const convMs = getMessageTimeMs(conv);
+    const convDate = new Date(convMs);
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
     return convDate >= weekAgo;
   }).length;
 
-  // Calculate active conversations in the last 7 days (fixed - not affected by date filter)
-  const activeConversationsLastSevenDays = safeUniqueConversations.filter(conv => {
-    const convDate = new Date(conv.timestamp);
+  // Calculate active conversations in the last 7 days (uses filtered data)
+  const activeConversationsLastSevenDays = filteredData.uniqueConversations.filter(conv => {
+    const convMs = getMessageTimeMs(conv);
+    const convDate = new Date(convMs);
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
-    return convDate >= weekAgo && globalActiveConversationIds.has(conv.conversation_id);
+    return convDate >= weekAgo && activeConversationIds.has(conv.conversation_id);
   }).length;
 
   // Calculate average response time based on time between messages in a conversation
@@ -542,7 +546,7 @@ const Dashboard = () => {
           </div>
 
           {/* Message Status Cards */}
-          <MessageStatusChart />
+          <MessageStatusChart conversations={filteredData.allConversations} />
 
           {/* Secondary Statistics Row */}
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -743,7 +747,7 @@ const Dashboard = () => {
           {/* Chart */}
           <Card className="bg-white border border-gray-100 shadow-sm rounded-xl overflow-hidden">
             <CardContent className="p-4 md:p-6">
-              <ConversationsChart />
+              <ConversationsChart conversations={filteredData.allConversations} />
             </CardContent>
           </Card>
         </main>
