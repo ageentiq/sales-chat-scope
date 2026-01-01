@@ -1,7 +1,13 @@
 import { ConversationMessage } from '@/data/mockData';
 import { getMessageTimeMs } from './timestamps';
 
-export function downloadCSV(data: string, filename: string) {
+export interface ExportResult {
+  success: boolean;
+  filename: string;
+  rowCount: number;
+}
+
+export function downloadCSV(data: string, filename: string): ExportResult {
   const blob = new Blob(['\ufeff' + data], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -12,6 +18,8 @@ export function downloadCSV(data: string, filename: string) {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+  const rowCount = data.split('\n').length - 1;
+  return { success: true, filename, rowCount };
 }
 
 export function formatDate(timestamp: number): string {
@@ -29,7 +37,7 @@ export function formatDateTime(timestamp: number): string {
 export function exportConversations(
   conversations: ConversationMessage[],
   filename: string = 'conversations.csv'
-) {
+): ExportResult {
   const headers = ['Conversation ID', 'Timestamp', 'Inbound', 'Outbound', 'Status'];
   const rows = conversations.map(conv => {
     const ms = getMessageTimeMs(conv);
@@ -43,13 +51,13 @@ export function exportConversations(
   });
   
   const csv = [headers.join(','), ...rows].join('\n');
-  downloadCSV(csv, filename);
+  return downloadCSV(csv, filename);
 }
 
 export function exportMessages(
   messages: ConversationMessage[],
   filename: string = 'messages.csv'
-) {
+): ExportResult {
   const headers = ['Conversation ID', 'Message ID', 'Timestamp', 'Direction', 'Content', 'Status'];
   const rows = messages.map(msg => {
     const ms = getMessageTimeMs(msg);
@@ -66,26 +74,26 @@ export function exportMessages(
   });
   
   const csv = [headers.join(','), ...rows].join('\n');
-  downloadCSV(csv, filename);
+  return downloadCSV(csv, filename);
 }
 
 export function exportSummaryStats(
   stats: Record<string, string | number>,
   filename: string = 'stats.csv'
-) {
+): ExportResult {
   const headers = ['Metric', 'Value'];
   const rows = Object.entries(stats).map(([key, value]) => {
     return [`"${key}"`, `"${value}"`].join(',');
   });
   
   const csv = [headers.join(','), ...rows].join('\n');
-  downloadCSV(csv, filename);
+  return downloadCSV(csv, filename);
 }
 
 export function exportMessageStatus(
   messages: ConversationMessage[],
   filename: string = 'message_status.csv'
-) {
+): ExportResult {
   const headers = ['Conversation ID', 'Message ID', 'Timestamp', 'Status', 'Content'];
   const rows = messages
     .filter(msg => msg.outbound && (msg as any).latestStatus)
@@ -101,5 +109,5 @@ export function exportMessageStatus(
     });
   
   const csv = [headers.join(','), ...rows].join('\n');
-  downloadCSV(csv, filename);
+  return downloadCSV(csv, filename);
 }

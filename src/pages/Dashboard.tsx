@@ -9,7 +9,8 @@ import { MessageStatusChart } from "@/components/MessageStatusChart";
 import { DateFilter, DateFilterOption, DateRange, getDateRangeForOption } from "@/components/DateFilter";
 import { getMessageTimeMs } from "@/lib/timestamps";
 import { ExportButton } from "@/components/ExportButton";
-import { exportConversations, exportMessages, exportSummaryStats, exportMessageStatus } from "@/lib/exportUtils";
+import { exportConversations, exportMessages, exportSummaryStats, exportMessageStatus, ExportResult } from "@/lib/exportUtils";
+import { toast } from "@/hooks/use-toast";
 
 const Dashboard = () => {
   const { t } = useLanguage();
@@ -488,14 +489,23 @@ const Dashboard = () => {
   const responseRateTrendColor = responseRateTrend >= 0 ? 'text-green-600' : 'text-red-600';
 
   // Export handlers
+  const showExportToast = useCallback((result: ExportResult) => {
+    toast({
+      title: "Export successful",
+      description: `Downloaded ${result.filename} with ${result.rowCount} rows`,
+    });
+  }, []);
+
   const handleExportConversations = useCallback(() => {
     const uniqueConvs = filteredData.uniqueConversations;
-    exportConversations(uniqueConvs, `conversations_${dateFilterOption}.csv`);
-  }, [filteredData.uniqueConversations, dateFilterOption]);
+    const result = exportConversations(uniqueConvs, `conversations_${dateFilterOption}.csv`);
+    showExportToast(result);
+  }, [filteredData.uniqueConversations, dateFilterOption, showExportToast]);
 
   const handleExportMessages = useCallback(() => {
-    exportMessages(filteredData.allConversations, `messages_${dateFilterOption}.csv`);
-  }, [filteredData.allConversations, dateFilterOption]);
+    const result = exportMessages(filteredData.allConversations, `messages_${dateFilterOption}.csv`);
+    showExportToast(result);
+  }, [filteredData.allConversations, dateFilterOption, showExportToast]);
 
   const handleExportToday = useCallback(() => {
     const { from, to } = getDateRangeForOption("today");
@@ -504,8 +514,9 @@ const Dashboard = () => {
       const ms = getMessageTimeMs(msg);
       return ms >= from.getTime() && ms <= to.getTime();
     });
-    exportMessages(todayConvs, 'conversations_today.csv');
-  }, [safeAllConversations]);
+    const result = exportMessages(todayConvs, 'conversations_today.csv');
+    showExportToast(result);
+  }, [safeAllConversations, showExportToast]);
 
   const handleExportLast7Days = useCallback(() => {
     const { from, to } = getDateRangeForOption("last7Days");
@@ -514,48 +525,54 @@ const Dashboard = () => {
       const ms = getMessageTimeMs(msg);
       return ms >= from.getTime() && ms <= to.getTime();
     });
-    exportMessages(weekConvs, 'conversations_last_7_days.csv');
-  }, [safeAllConversations]);
+    const result = exportMessages(weekConvs, 'conversations_last_7_days.csv');
+    showExportToast(result);
+  }, [safeAllConversations, showExportToast]);
 
   const handleExportMessageStatus = useCallback(() => {
-    exportMessageStatus(filteredData.allConversations, `message_status_${dateFilterOption}.csv`);
-  }, [filteredData.allConversations, dateFilterOption]);
+    const result = exportMessageStatus(filteredData.allConversations, `message_status_${dateFilterOption}.csv`);
+    showExportToast(result);
+  }, [filteredData.allConversations, dateFilterOption, showExportToast]);
 
   const handleExportTransitionStats = useCallback(() => {
     if (transitionStats) {
-      exportSummaryStats({
+      const result = exportSummaryStats({
         'Create Prospect': transitionStats.createProspect,
         'Future Interest': transitionStats.futureInterest,
         'Not Interested': transitionStats.notInterested,
         'No Response': transitionStats.noResponse,
         'Total': transitionStats.total
       }, `transition_stats_${dateFilterOption}.csv`);
+      showExportToast(result);
     }
-  }, [transitionStats, dateFilterOption]);
+  }, [transitionStats, dateFilterOption, showExportToast]);
 
   const handleExportAvgMessages = useCallback(() => {
-    exportSummaryStats({
+    const result = exportSummaryStats({
       'Average Messages per Conversation': avgMessagesPerConversation,
       'Last Week Average': lastWeekMsgAvg?.toFixed(1) || 'N/A',
       'Previous Week Average': prevWeekMsgAvg?.toFixed(1) || 'N/A',
       'Trend': avgMessagesTrendFormatted
     }, `avg_messages_${dateFilterOption}.csv`);
-  }, [avgMessagesPerConversation, lastWeekMsgAvg, prevWeekMsgAvg, avgMessagesTrendFormatted, dateFilterOption]);
+    showExportToast(result);
+  }, [avgMessagesPerConversation, lastWeekMsgAvg, prevWeekMsgAvg, avgMessagesTrendFormatted, dateFilterOption, showExportToast]);
 
   const handleExportResponseTime = useCallback(() => {
-    exportSummaryStats({
+    const result = exportSummaryStats({
       'Average Response Time (All)': avgResponseTime,
       'Average Response Time (Active)': activeAvgResponseTime,
       'Trend': avgResponseTimeTrendFormatted
     }, `response_time_${dateFilterOption}.csv`);
-  }, [avgResponseTime, activeAvgResponseTime, avgResponseTimeTrendFormatted, dateFilterOption]);
+    showExportToast(result);
+  }, [avgResponseTime, activeAvgResponseTime, avgResponseTimeTrendFormatted, dateFilterOption, showExportToast]);
 
   const handleExportResponseRate = useCallback(() => {
-    exportSummaryStats({
+    const result = exportSummaryStats({
       'Response Rate': responseRate,
       'Trend': responseRateTrendFormatted
     }, `response_rate_${dateFilterOption}.csv`);
-  }, [responseRate, responseRateTrendFormatted, dateFilterOption]);
+    showExportToast(result);
+  }, [responseRate, responseRateTrendFormatted, dateFilterOption, showExportToast]);
 
   if (isLoadingAll) {
     return (
