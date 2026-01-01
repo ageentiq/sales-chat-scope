@@ -20,14 +20,74 @@ const Dashboard = () => {
   const { data: uniqueConversations = [] } = useUniqueConversations();
   const { data: allConversations = [], isLoading: isLoadingAll } = useConversations();
   
-  // Format dates for transition stats API
-  const dateFromStr = dateRange.from ? dateRange.from.toISOString() : null;
-  const dateToStr = dateRange.to ? dateRange.to.toISOString() : null;
-  const { data: transitionStats } = useTransitionStats(dateFromStr, dateToStr);
-  
   // Fallback to ensure we always have data
   const safeUniqueConversations = uniqueConversations || [];
   const safeAllConversations = allConversations || [];
+  
+  // Use transition stats only for All Time (backend doesn't filter by date properly)
+  const { data: transitionStatsFromApi } = useTransitionStats(null, null);
+  
+  // Compute filtered transition stats client-side
+  const filteredTransitionStats = useMemo(() => {
+    if (!dateRange.from || !dateRange.to) {
+      // No filter - use API data
+      return transitionStatsFromApi || { noResponse: 0, futureInterest: 0, notInterested: 0, createProspect: 0, total: 0 };
+    }
+    
+    // When filtered, we can compute "No Response" from conversation data
+    // No Response = conversations with only 1 message (no customer reply)
+    const fromMs = dateRange.from.getTime();
+    const toMs = dateRange.to.getTime();
+    
+    // Get filtered unique conversations
+    const filteredConvIds = new Set<string>();
+    safeUniqueConversations.forEach(conv => {
+      const convMs = getMessageTimeMs(conv);
+      if (convMs >= fromMs && convMs <= toMs) {
+        filteredConvIds.add(conv.conversation_id);
+      }
+    });
+    
+    // Count messages per conversation in the filtered set
+    const msgCounts: Record<string, number> = {};
+    safeAllConversations.forEach(msg => {
+      if (filteredConvIds.has(msg.conversation_id)) {
+        msgCounts[msg.conversation_id] = (msgCounts[msg.conversation_id] || 0) + 1;
+      }
+    });
+    
+    // No Response = only 1 message
+    const noResponse = Object.values(msgCounts).filter(count => count === 1).length;
+    const responded = Object.values(msgCounts).filter(count => count >= 2).length;
+    const total = filteredConvIds.size;
+    
+    // For other categories, we'd need analysis data which we can't filter client-side
+    // Use proportional estimate based on API totals if available
+    if (transitionStatsFromApi && transitionStatsFromApi.total > 0) {
+      const respondedFromApi = transitionStatsFromApi.total - transitionStatsFromApi.noResponse;
+      if (respondedFromApi > 0) {
+        const ratio = responded / respondedFromApi;
+        return {
+          noResponse,
+          futureInterest: Math.round(transitionStatsFromApi.futureInterest * ratio),
+          notInterested: Math.round(transitionStatsFromApi.notInterested * ratio),
+          createProspect: Math.round(transitionStatsFromApi.createProspect * ratio),
+          total,
+        };
+      }
+    }
+    
+    return {
+      noResponse,
+      futureInterest: 0,
+      notInterested: 0,
+      createProspect: 0,
+      total,
+    };
+  }, [dateRange, safeUniqueConversations, safeAllConversations, transitionStatsFromApi]);
+  
+  // Use computed stats
+  const transitionStats = filteredTransitionStats;
 
   // Handle date filter change
   const handleDateFilterChange = (option: DateFilterOption, range: DateRange) => {

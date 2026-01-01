@@ -122,6 +122,15 @@ export function useAnalysisByConversationId(conversationId: string) {
   });
 }
 
+// Get all analysis records
+export function useAllAnalysis() {
+  return useQuery({
+    queryKey: [...conversationKeys.all, 'allAnalysis'],
+    queryFn: () => ConversationService.getAllAnalysis(),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+}
+
 // Get transition statistics with optional date filtering
 export function useTransitionStats(dateFrom?: string | null, dateTo?: string | null) {
   return useQuery({
