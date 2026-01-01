@@ -217,6 +217,36 @@ export class ConversationService {
     }
   }
 
+  static async getAllAnalysis(): Promise<Array<{
+    conversation_id: string;
+    summary: string;
+    analysis: string;
+    transition: string;
+  }>> {
+    try {
+      console.log('🔍 [ConversationService] Fetching all analysis records');
+      
+      const response = await fetch(`${API_BASE_URL}/analysis`);
+      
+      if (!response.ok) {
+        // Fallback: try to get stats endpoint which might have all data
+        console.log('⚠️ [ConversationService] /analysis endpoint not available');
+        return [];
+      }
+      
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        return result.data;
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('💥 [ConversationService] Error fetching all analysis:', error);
+      return [];
+    }
+  }
+
   static async getTransitionStats(dateFrom?: string, dateTo?: string): Promise<{
     noResponse: number;
     futureInterest: number;
