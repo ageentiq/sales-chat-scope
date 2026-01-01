@@ -491,10 +491,10 @@ const Dashboard = () => {
   // Export handlers
   const showExportToast = useCallback((result: ExportResult) => {
     toast({
-      title: "Export successful",
-      description: `Downloaded ${result.filename} with ${result.rowCount} rows`,
+      title: t('exportSuccessful'),
+      description: t('downloadedWithRows').replace('{filename}', result.filename).replace('{rowCount}', String(result.rowCount)),
     });
-  }, []);
+  }, [t]);
 
   const handleExportConversations = useCallback(() => {
     const uniqueConvs = filteredData.uniqueConversations;
