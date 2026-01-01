@@ -1,9 +1,11 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { CheckCheck, AlertTriangle, Send } from "lucide-react";
+import { CheckCheck, AlertTriangle, Download } from "lucide-react";
 import { getMessageTimeMs } from "@/lib/timestamps";
 import { ConversationMessage } from "@/data/mockData";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Status tracking started at 03:28 PM on Dec 31, 2025 (UTC+3 = 12:28 PM UTC)
 const STATUS_TRACKING_START = new Date('2025-12-31T12:28:00.000Z').getTime();
@@ -26,9 +28,10 @@ interface StatusCounts {
 
 interface MessageStatusChartProps {
   conversations?: ConversationMessage[];
+  onExport?: () => void;
 }
 
-export const MessageStatusChart = ({ conversations = [] }: MessageStatusChartProps) => {
+export const MessageStatusChart = ({ conversations = [], onExport }: MessageStatusChartProps) => {
   const { t } = useLanguage();
 
   const statusCounts = useMemo<StatusCounts>(() => {
@@ -111,8 +114,30 @@ export const MessageStatusChart = ({ conversations = [] }: MessageStatusChartPro
               <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">
                 {item.label}
               </CardTitle>
-              <div className={`p-2 ${item.bgColor} rounded-lg`}>
-                <Icon className={`h-4 w-4 md:h-5 md:w-5 ${item.color}`} />
+              <div className="flex items-center gap-1">
+                {onExport && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onExport();
+                        }}
+                      >
+                        <Download className="h-3 w-3 text-gray-400 hover:text-gray-600" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t('exportData') || 'Export data'}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+                <div className={`p-2 ${item.bgColor} rounded-lg`}>
+                  <Icon className={`h-4 w-4 md:h-5 md:w-5 ${item.color}`} />
+                </div>
               </div>
             </CardHeader>
             <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
