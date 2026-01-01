@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useConversations } from "@/hooks/useConversations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { CheckCheck, AlertTriangle, Send } from "lucide-react";
 import { getMessageTimeMs } from "@/lib/timestamps";
+import { ConversationMessage } from "@/data/mockData";
 
 // Status tracking started at 03:28 PM on Dec 31, 2025 (UTC+3 = 12:28 PM UTC)
 const STATUS_TRACKING_START = new Date('2025-12-31T12:28:00.000Z').getTime();
@@ -24,14 +24,17 @@ interface StatusCounts {
   total: number;
 }
 
-export const MessageStatusChart = () => {
+interface MessageStatusChartProps {
+  conversations?: ConversationMessage[];
+}
+
+export const MessageStatusChart = ({ conversations = [] }: MessageStatusChartProps) => {
   const { t } = useLanguage();
-  const { data: allConversations = [] } = useConversations();
 
   const statusCounts = useMemo<StatusCounts>(() => {
     const counts: StatusCounts = { sent: 0, delivered: 0, read: 0, failed: 0, failedPhoneNumber: 0, failedOther: 0, total: 0 };
 
-    allConversations.forEach((msg) => {
+    conversations.forEach((msg) => {
       // Only count messages after status tracking started
       const msgTime = getMessageTimeMs(msg);
       if (msgTime < STATUS_TRACKING_START) return;
@@ -57,7 +60,7 @@ export const MessageStatusChart = () => {
     });
 
     return counts;
-  }, [allConversations]);
+  }, [conversations]);
 
   const getPercentage = (count: number) => {
     if (statusCounts.total === 0) return 0;

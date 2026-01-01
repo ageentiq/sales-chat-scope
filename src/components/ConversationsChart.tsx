@@ -2,16 +2,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Info, Calendar } from "lucide-react";
-import { useConversations } from "@/hooks/useConversations";
 import { useMemo, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, subDays, startOfDay, isWithinInterval } from "date-fns";
+import { getMessageTimeMs } from "@/lib/timestamps";
+import { ConversationMessage } from "@/data/mockData";
 
 type FilterOption = '7days' | '14days' | '30days' | '90days';
 
-export const ConversationsChart = () => {
+interface ConversationsChartProps {
+  conversations?: ConversationMessage[];
+}
+
+export const ConversationsChart = ({ conversations = [] }: ConversationsChartProps) => {
   const { t } = useLanguage();
-  const { data: allConversations = [] } = useConversations();
   const [filter, setFilter] = useState<FilterOption>('30days');
 
   const filterOptions: { value: FilterOption; label: string; days: number }[] = [
@@ -46,8 +50,9 @@ export const ConversationsChart = () => {
       dayCounts[d.dateStr] = 0;
     });
     
-    allConversations.forEach(conv => {
-      const convDate = startOfDay(new Date(conv.timestamp));
+    conversations.forEach(conv => {
+      const convMs = getMessageTimeMs(conv);
+      const convDate = startOfDay(new Date(convMs));
       const dateStr = format(convDate, 'yyyy-MM-dd');
       
       if (isWithinInterval(convDate, { start: startDate, end: today })) {
@@ -61,7 +66,7 @@ export const ConversationsChart = () => {
       fullDate: d.dateStr,
       conversations: dayCounts[d.dateStr] || 0,
     }));
-  }, [allConversations, filter]);
+  }, [conversations, filter]);
 
   // Calculate total for the selected period
   const totalInPeriod = useMemo(() => {
