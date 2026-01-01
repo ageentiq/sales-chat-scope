@@ -7,6 +7,7 @@ import { MessageCircle, MessagesSquare, Users, TrendingUp, Clock, Activity, Phon
 import { ConversationsChart } from "@/components/ConversationsChart";
 import { MessageStatusChart } from "@/components/MessageStatusChart";
 import { DateFilter, DateFilterOption, DateRange, getDateRangeForOption } from "@/components/DateFilter";
+import { getMessageTimeMs } from "@/lib/timestamps";
 
 const Dashboard = () => {
   const { t } = useLanguage();
@@ -43,14 +44,17 @@ const Dashboard = () => {
       };
     }
 
+    const fromMs = dateRange.from!.getTime();
+    const toMs = dateRange.to!.getTime();
+
     const filteredUnique = safeUniqueConversations.filter((conv) => {
-      const convDate = new Date(conv.timestamp);
-      return convDate >= dateRange.from! && convDate <= dateRange.to!;
+      const convMs = getMessageTimeMs(conv);
+      return convMs >= fromMs && convMs <= toMs;
     });
 
     const filteredAll = safeAllConversations.filter((msg) => {
-      const msgDate = new Date(msg.timestamp);
-      return msgDate >= dateRange.from! && msgDate <= dateRange.to!;
+      const msgMs = getMessageTimeMs(msg);
+      return msgMs >= fromMs && msgMs <= toMs;
     });
 
     return {
