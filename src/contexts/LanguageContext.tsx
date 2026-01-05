@@ -215,6 +215,11 @@ const translations = {
     firstResponseTimeTooltip: 'الوقت من أول رسالة للعميل إلى أول رد من الوكيل. يعرض الوسيط و P90',
     deliveryRateTooltip: 'نسبة الرسائل التي تم تسليمها أو قراءتها من إجمالي الرسائل المرسلة',
     prospectRateTooltip: 'نسبة المحادثات التي تحولت إلى عملاء محتملين',
+    // Phase 2 Conversion Funnel
+    conversionFunnel: 'مسار التحويل',
+    fromPrevious: 'من السابق',
+    conversionRate: 'معدل التحويل',
+    outcomeBreakdown: 'توزيع النتائج',
   },
   en: {
     home: 'Home',
@@ -420,6 +425,11 @@ const translations = {
     firstResponseTimeTooltip: 'Time from first customer message to first agent reply. Shows median and P90',
     deliveryRateTooltip: 'Percentage of messages delivered or read out of total sent messages',
     prospectRateTooltip: 'Percentage of conversations converted to prospects',
+    // Phase 2 Conversion Funnel
+    conversionFunnel: 'Conversion Funnel',
+    fromPrevious: 'from previous',
+    conversionRate: 'conversion rate',
+    outcomeBreakdown: 'Outcome Breakdown',
   },
 };
 
