@@ -33,7 +33,7 @@ const MessageStatusIndicator = ({ status, t }: { status?: MessageStatus; t: (key
   
   const statusConfig = {
     sent: { icon: Check, color: 'text-gray-400', label: t('statusSent') },
-    delivered: { icon: CheckCheck, color: 'text-green-500', label: t('statusDelivered') },
+    delivered: { icon: CheckCheck, color: 'text-gray-400', label: t('statusDelivered') },
     read: { icon: CheckCheck, color: 'text-blue-500', label: t('statusRead') },
     failed: { icon: AlertTriangle, color: 'text-red-500', label: t('statusFailed') },
   };
