@@ -220,6 +220,12 @@ const translations = {
     fromPrevious: 'من السابق',
     conversionRate: 'معدل التحويل',
     outcomeBreakdown: 'توزيع النتائج',
+    // Phase 3 Trends
+    trendsOverTime: 'الاتجاهات عبر الزمن',
+    daily: 'يومي',
+    weekly: 'أسبوعي',
+    activeConversations: 'المحادثات النشطة',
+    failedRate: 'معدل الفشل',
   },
   en: {
     home: 'Home',
@@ -430,6 +436,12 @@ const translations = {
     fromPrevious: 'from previous',
     conversionRate: 'conversion rate',
     outcomeBreakdown: 'Outcome Breakdown',
+    // Phase 3 Trends
+    trendsOverTime: 'Trends Over Time',
+    daily: 'Daily',
+    weekly: 'Weekly',
+    activeConversations: 'Active Conversations',
+    failedRate: 'Failed Rate',
   },
 };
 
