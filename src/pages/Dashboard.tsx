@@ -22,7 +22,7 @@ const Dashboard = () => {
   const { t } = useLanguage();
   
   // Date filter state
-  const [dateFilterOption, setDateFilterOption] = useState<DateFilterOption>("allTime");
+  const [dateFilterOption, setDateFilterOption] = useState<DateFilterOption>("today");
   const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
   const [compareEnabled, setCompareEnabled] = useState(false);
   
