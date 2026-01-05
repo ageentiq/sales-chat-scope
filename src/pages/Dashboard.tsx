@@ -16,6 +16,7 @@ import { KPIRow } from "@/components/dashboard/KPIRow";
 import { CompareToggle } from "@/components/dashboard/CompareToggle";
 import { ConversionFunnel } from "@/components/dashboard/ConversionFunnel";
 import { TrendsChart } from "@/components/dashboard/TrendsChart";
+import { DiagnosticsPanel } from "@/components/dashboard/DiagnosticsPanel";
 import { useDashboardMetrics, formatResponseTime } from "@/hooks/useDashboardMetrics";
 
 const Dashboard = () => {
@@ -299,8 +300,8 @@ const Dashboard = () => {
             transitionStats={transitionStats}
           />
 
-          {/* Message Status Analytics */}
-          <MessageStatusChart conversations={filteredData.allConversations} onExport={handleExportMessageStatus} />
+          {/* Row 4: Diagnostics Panel */}
+          <DiagnosticsPanel allConversations={filteredData.allConversations} />
 
           {/* Transition Statistics */}
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
