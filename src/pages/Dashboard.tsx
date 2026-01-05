@@ -4,9 +4,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUniqueConversations, useConversations, useTransitionStats } from "@/hooks/useConversations";
 import { MessageCircle, Users, Clock, PhoneOff, Star, ThumbsDown, Briefcase, TrendingUp, CheckCheck, Target } from "lucide-react";
-import { ConversationsChart } from "@/components/ConversationsChart";
-import { MessageStatusChart } from "@/components/MessageStatusChart";
-import { DateFilter, DateFilterOption, DateRange, getDateRangeForOption } from "@/components/DateFilter";
+import { DateFilter, DateFilterOption, DateRange } from "@/components/DateFilter";
 import { getMessageTimeMs } from "@/lib/timestamps";
 import { ExportButton } from "@/components/ExportButton";
 import { exportConversations, exportMessages, exportSummaryStats, exportMessageStatus, ExportResult } from "@/lib/exportUtils";
@@ -17,6 +15,7 @@ import { CompareToggle } from "@/components/dashboard/CompareToggle";
 import { ConversionFunnel } from "@/components/dashboard/ConversionFunnel";
 import { TrendsChart } from "@/components/dashboard/TrendsChart";
 import { DiagnosticsPanel } from "@/components/dashboard/DiagnosticsPanel";
+import { StakeholderSummary } from "@/components/dashboard/StakeholderSummary";
 import { useDashboardMetrics, formatResponseTime } from "@/hooks/useDashboardMetrics";
 
 const Dashboard = () => {
@@ -303,14 +302,17 @@ const Dashboard = () => {
           {/* Row 4: Diagnostics Panel */}
           <DiagnosticsPanel allConversations={filteredData.allConversations} />
 
+          {/* Row 5: Stakeholder Summary */}
+          <StakeholderSummary metrics={metrics} compareEnabled={compareEnabled} />
+
           {/* Transition Statistics */}
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {/* Create Prospect */}
-            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
+            <Card className="bg-card border border-border shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">
+                <CardTitle className="text-[11px] md:text-sm font-semibold text-foreground">
                   <span className="block">Create Prospect</span>
-                  <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">إنشاء صفقة</span>
+                  <span className="block text-[10px] md:text-xs text-muted-foreground font-normal mt-0.5">إنشاء صفقة</span>
                 </CardTitle>
                 <div className="flex items-center gap-1">
                   <ExportButton onClick={handleExportTransitionStats} />
@@ -320,10 +322,10 @@ const Dashboard = () => {
                 </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.createProspect || 0}</div>
+                <div className="text-xl md:text-3xl font-bold text-foreground tabular-nums">{transitionStats?.createProspect || 0}</div>
                 {transitionStats?.total ? (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className="text-[11px] md:text-xs text-gray-500 flex items-center gap-1">
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <p className="text-[11px] md:text-xs text-muted-foreground flex items-center gap-1">
                       <span className="inline-block w-2 h-2 rounded-full bg-green-300"></span>
                       {((transitionStats.createProspect / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
                     </p>
@@ -333,21 +335,21 @@ const Dashboard = () => {
             </Card>
 
             {/* Future Interest */}
-            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
+            <Card className="bg-card border border-border shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">
+                <CardTitle className="text-[11px] md:text-sm font-semibold text-foreground">
                   <span className="block">Future Interest</span>
-                  <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">مهتم بالمراحل القادمة</span>
+                  <span className="block text-[10px] md:text-xs text-muted-foreground font-normal mt-0.5">مهتم بالمراحل القادمة</span>
                 </CardTitle>
                 <div className="p-2 bg-yellow-50 rounded-lg">
                   <Star className="h-4 w-4 md:h-5 md:w-5 text-yellow-500" />
                 </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.futureInterest || 0}</div>
+                <div className="text-xl md:text-3xl font-bold text-foreground tabular-nums">{transitionStats?.futureInterest || 0}</div>
                 {transitionStats?.total ? (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className="text-[11px] md:text-xs text-gray-500 flex items-center gap-1">
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <p className="text-[11px] md:text-xs text-muted-foreground flex items-center gap-1">
                       <span className="inline-block w-2 h-2 rounded-full bg-yellow-300"></span>
                       {((transitionStats.futureInterest / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
                     </p>
@@ -357,22 +359,22 @@ const Dashboard = () => {
             </Card>
 
             {/* Not Interested */}
-            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
+            <Card className="bg-card border border-border shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">
+                <CardTitle className="text-[11px] md:text-sm font-semibold text-foreground">
                   <span className="block">Not Interested</span>
-                  <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">غير مهتم</span>
+                  <span className="block text-[10px] md:text-xs text-muted-foreground font-normal mt-0.5">غير مهتم</span>
                 </CardTitle>
-                <div className="p-2 bg-gray-100 rounded-lg">
-                  <ThumbsDown className="h-4 w-4 md:h-5 md:w-5 text-gray-400" />
+                <div className="p-2 bg-muted rounded-lg">
+                  <ThumbsDown className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
                 </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.notInterested || 0}</div>
+                <div className="text-xl md:text-3xl font-bold text-foreground tabular-nums">{transitionStats?.notInterested || 0}</div>
                 {transitionStats?.total ? (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className="text-[11px] md:text-xs text-gray-500 flex items-center gap-1">
-                      <span className="inline-block w-2 h-2 rounded-full bg-gray-300"></span>
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <p className="text-[11px] md:text-xs text-muted-foreground flex items-center gap-1">
+                      <span className="inline-block w-2 h-2 rounded-full bg-muted"></span>
                       {((transitionStats.notInterested / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
                     </p>
                   </div>
@@ -381,21 +383,21 @@ const Dashboard = () => {
             </Card>
 
             {/* No Response */}
-            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
+            <Card className="bg-card border border-border shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
               <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">
+                <CardTitle className="text-[11px] md:text-sm font-semibold text-foreground">
                   <span className="block">No Response</span>
-                  <span className="block text-[10px] md:text-xs text-gray-400 font-normal mt-0.5">لم يتم الرد</span>
+                  <span className="block text-[10px] md:text-xs text-muted-foreground font-normal mt-0.5">لم يتم الرد</span>
                 </CardTitle>
                 <div className="p-2 bg-red-50 rounded-lg">
                   <PhoneOff className="h-4 w-4 md:h-5 md:w-5 text-red-400" />
                 </div>
               </CardHeader>
               <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{transitionStats?.noResponse || 0}</div>
+                <div className="text-xl md:text-3xl font-bold text-foreground tabular-nums">{transitionStats?.noResponse || 0}</div>
                 {transitionStats?.total ? (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className="text-[11px] md:text-xs text-gray-500 flex items-center gap-1">
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <p className="text-[11px] md:text-xs text-muted-foreground flex items-center gap-1">
                       <span className="inline-block w-2 h-2 rounded-full bg-red-200"></span>
                       {((transitionStats.noResponse / transitionStats.total) * 100).toFixed(0)}% {t('ofTotal')}
                     </p>
@@ -404,13 +406,6 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </div>
-
-          {/* Chart */}
-          <Card className="bg-white border border-gray-100 shadow-sm rounded-xl overflow-hidden">
-            <CardContent className="p-4 md:p-6">
-              <ConversationsChart conversations={filteredData.allConversations} />
-            </CardContent>
-          </Card>
         </main>
       </div>
     </TooltipProvider>
