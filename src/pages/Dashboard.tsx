@@ -229,19 +229,6 @@ const Dashboard = () => {
               compareEnabled={compareEnabled}
             />
 
-            {/* 4. First Response Time */}
-            <KPITile
-              title={t('firstResponseTime')}
-              value={formatResponseTime(metrics.firstResponseTimeMedian)}
-              subtitle={`${t('p90Abbrev')}: ${formatResponseTime(metrics.firstResponseTimeP90)} · ${metrics.slaCompliance5min.toFixed(0)}% ${t('within5min')}`}
-              icon={Clock}
-              iconColor="text-amber-600"
-              iconBgColor="bg-amber-100"
-              delta={metrics.firstResponseDelta}
-              deltaLabel={t('vsPreviousPeriod')}
-              tooltip={t('firstResponseTimeTooltip')}
-              compareEnabled={compareEnabled}
-            />
 
             {/* 5. Delivery Rate */}
             <KPITile
