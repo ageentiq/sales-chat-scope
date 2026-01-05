@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { CheckCheck, AlertTriangle, Download } from "lucide-react";
+import { CheckCheck, AlertTriangle, Download, Check } from "lucide-react";
 import { getMessageTimeMs } from "@/lib/timestamps";
 import { ConversationMessage } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
@@ -72,6 +72,14 @@ export const MessageStatusChart = ({ conversations = [], onExport }: MessageStat
 
   const statusItems = [
     {
+      key: 'sent',
+      label: t('statusSent') || 'Sent',
+      count: statusCounts.sent,
+      icon: Check,
+      color: 'text-gray-500',
+      bgColor: 'bg-gray-100',
+    },
+    {
       key: 'delivered',
       label: t('statusDelivered') || 'Delivered',
       count: statusCounts.delivered,
@@ -102,7 +110,7 @@ export const MessageStatusChart = ({ conversations = [], onExport }: MessageStat
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-4 md:gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
       {/* Status Cards */}
       {statusItems.map((item) => {
         const Icon = item.icon;
