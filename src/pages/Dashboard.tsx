@@ -4,7 +4,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUniqueConversations, useConversations, useTransitionStats } from "@/hooks/useConversations";
 import { MessageCircle, Users, Clock, PhoneOff, Star, ThumbsDown, Briefcase, TrendingUp, CheckCheck, Target } from "lucide-react";
-import { DateFilter, DateFilterOption, DateRange } from "@/components/DateFilter";
+import { DateFilter, DateFilterOption, DateRange, getDateRangeForOption } from "@/components/DateFilter";
 import { getMessageTimeMs } from "@/lib/timestamps";
 import { ExportButton } from "@/components/ExportButton";
 import { exportConversations, exportMessages, exportSummaryStats, exportMessageStatus, ExportResult } from "@/lib/exportUtils";
@@ -23,7 +23,7 @@ const Dashboard = () => {
   
   // Date filter state
   const [dateFilterOption, setDateFilterOption] = useState<DateFilterOption>("today");
-  const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
+  const [dateRange, setDateRange] = useState<DateRange>(() => getDateRangeForOption("today"));
   const [compareEnabled, setCompareEnabled] = useState(false);
   
   // Use React Query hooks for data fetching
