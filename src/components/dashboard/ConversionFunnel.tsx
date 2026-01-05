@@ -15,6 +15,7 @@ export const ConversionFunnel = ({ stages, outcomes }: ConversionFunnelProps) =>
   const getStageIcon = (id: string) => {
     switch (id) {
       case 'conversations': return Users;
+      case 'failed': return Send;
       case 'sent': return Send;
       case 'delivered': return CheckCheck;
       case 'read': return Eye;
@@ -42,63 +43,45 @@ export const ConversionFunnel = ({ stages, outcomes }: ConversionFunnelProps) =>
       </CardHeader>
       <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
         {/* Funnel Stages */}
-        <div className="flex flex-col lg:flex-row items-stretch gap-2 lg:gap-0">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {stages.map((stage, index) => {
             const Icon = getStageIcon(stage.id);
-            const isLast = index === stages.length - 1;
-            const maxCount = stages[0]?.count || 1;
-            const widthPercent = Math.max(30, (stage.count / maxCount) * 100);
 
             return (
-              <div key={stage.id} className="flex items-center flex-1">
-                {/* Stage Card */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div 
-                      className="flex-1 lg:flex-none relative bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-3 md:p-4 border border-gray-200 hover:border-primary/30 hover:shadow-md transition-all cursor-default"
-                      style={{ 
-                        minWidth: '100px',
-                        width: `${widthPercent}%`,
-                        maxWidth: '100%'
-                      }}
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className={`p-1.5 rounded-md ${stage.color}`}>
-                          <Icon className="h-3 w-3 md:h-4 md:w-4 text-white" />
-                        </div>
-                        <span className="text-[10px] md:text-xs font-medium text-gray-600 truncate">
-                          {language === 'ar' ? stage.labelAr : stage.label}
-                        </span>
+              <Tooltip key={stage.id}>
+                <TooltipTrigger asChild>
+                  <div 
+                    className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200 hover:border-primary/30 hover:shadow-md transition-all cursor-default"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={`p-2 rounded-lg ${stage.color}`}>
+                        <Icon className="h-4 w-4 text-white" />
                       </div>
-                      <div className="text-lg md:text-2xl font-bold text-gray-900 tabular-nums">
-                        {stage.count.toLocaleString()}
-                      </div>
-                      {index > 0 && stage.conversionRate > 0 && (
-                        <div className="text-[10px] md:text-xs text-gray-500 mt-1">
-                          <span className={stage.conversionRate >= 70 ? 'text-green-600' : stage.conversionRate >= 40 ? 'text-amber-600' : 'text-red-500'}>
-                            {stage.conversionRate.toFixed(0)}%
-                          </span>
-                          <span className="text-gray-400 ml-1">{t('fromPrevious')}</span>
-                        </div>
-                      )}
                     </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="font-medium">{language === 'ar' ? stage.labelAr : stage.label}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {stage.count.toLocaleString()} {t('conversations')}
-                      {index > 0 && ` (${stage.conversionRate.toFixed(1)}% ${t('conversionRate')})`}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-
-                {/* Arrow between stages */}
-                {!isLast && (
-                  <div className="hidden lg:flex items-center justify-center px-1">
-                    <ChevronRight className="h-5 w-5 text-gray-300" />
+                    <div className="text-sm font-medium text-gray-600 mb-1">
+                      {language === 'ar' ? stage.labelAr : stage.label}
+                    </div>
+                    <div className="text-2xl font-bold text-gray-900 tabular-nums">
+                      {stage.count.toLocaleString()}
+                    </div>
+                    {index > 0 && (
+                      <div className="text-xs text-gray-500 mt-2">
+                        <span className={stage.conversionRate >= 70 ? 'text-green-600 font-semibold' : stage.conversionRate >= 40 ? 'text-amber-600 font-semibold' : 'text-red-500 font-semibold'}>
+                          {stage.conversionRate.toFixed(0)}%
+                        </span>
+                        <span className="text-gray-400 ml-1">{t('ofTotal')}</span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="font-medium">{language === 'ar' ? stage.labelAr : stage.label}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {stage.count.toLocaleString()} {t('conversations')}
+                    {index > 0 && ` (${stage.conversionRate.toFixed(1)}% ${t('ofTotal')})`}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
             );
           })}
         </div>
