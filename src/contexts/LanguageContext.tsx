@@ -186,9 +186,14 @@ const translations = {
     trackingStartedAt: 'منذ',
     messagesTracked: 'رسالة متتبعة',
     // Export features
+    export: 'تصدير',
     exportData: 'تصدير البيانات',
     exportSuccessful: 'تم التصدير بنجاح',
     downloadedWithRows: 'تم تحميل {filename} مع {rowCount} صفوف',
+    exportConversations: 'تصدير المحادثات',
+    exportMessages: 'تصدير الرسائل',
+    exportMessageStatus: 'تصدير حالة الرسائل',
+    exportTransitionStats: 'تصدير إحصائيات التحويل',
     // Transition stats
     noResponse: 'بدون رد',
     futureInterest: 'اهتمام مستقبلي',
@@ -412,9 +417,14 @@ const translations = {
     trackingStartedAt: 'Since',
     messagesTracked: 'messages tracked',
     // Export features
+    export: 'Export',
     exportData: 'Export data',
     exportSuccessful: 'Export successful',
     downloadedWithRows: 'Downloaded {filename} with {rowCount} rows',
+    exportConversations: 'Export Conversations',
+    exportMessages: 'Export Messages',
+    exportMessageStatus: 'Export Message Status',
+    exportTransitionStats: 'Export Transition Stats',
     // Transition stats
     noResponse: 'No Response',
     futureInterest: 'Future Interest',
