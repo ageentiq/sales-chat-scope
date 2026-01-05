@@ -50,9 +50,9 @@ export const ConversionFunnel = ({ stages, outcomes }: ConversionFunnelProps) =>
           {t('conversionFunnel')}
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+      <CardContent className="px-4 md:px-6 pb-6">
         {/* Funnel Stages */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {stages.map((stage, index) => {
             const { Icon, colorClass } = getStageIconConfig(stage.id);
             const useWhiteBackground = ['sent', 'delivered', 'read'].includes(stage.id);
@@ -61,21 +61,21 @@ export const ConversionFunnel = ({ stages, outcomes }: ConversionFunnelProps) =>
               <Tooltip key={stage.id}>
                 <TooltipTrigger asChild>
                   <div 
-                    className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200 hover:border-primary/30 hover:shadow-md transition-all cursor-default"
+                    className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200 hover:border-primary/30 hover:shadow-md transition-all cursor-default min-h-[140px] flex flex-col"
                   >
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className={`p-2 rounded-lg ${useWhiteBackground ? 'bg-white border border-gray-200' : stage.color}`}>
-                        <Icon className={`h-4 w-4 ${colorClass}`} />
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className={`p-2.5 rounded-lg ${useWhiteBackground ? 'bg-white border border-gray-200' : stage.color}`}>
+                        <Icon className={`h-5 w-5 ${colorClass}`} />
                       </div>
+                      <span className="text-base font-semibold text-gray-700">
+                        {language === 'ar' ? stage.labelAr : stage.label}
+                      </span>
                     </div>
-                    <div className="text-sm font-medium text-gray-600 mb-1">
-                      {language === 'ar' ? stage.labelAr : stage.label}
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900 tabular-nums">
+                    <div className="text-3xl font-bold text-gray-900 tabular-nums mt-auto">
                       {stage.count.toLocaleString()}
                     </div>
                     {index > 0 && (
-                      <div className="text-xs text-gray-500 mt-2">
+                      <div className="text-sm text-gray-500 mt-2">
                         <span className={stage.conversionRate >= 70 ? 'text-green-600 font-semibold' : stage.conversionRate >= 40 ? 'text-amber-600 font-semibold' : 'text-red-500 font-semibold'}>
                           {stage.conversionRate.toFixed(0)}%
                         </span>
@@ -86,7 +86,7 @@ export const ConversionFunnel = ({ stages, outcomes }: ConversionFunnelProps) =>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="font-medium">{language === 'ar' ? stage.labelAr : stage.label}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {stage.count.toLocaleString()} {t('conversations')}
                     {index > 0 && ` (${stage.conversionRate.toFixed(1)}% ${t('ofTotal')})`}
                   </p>
