@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUniqueConversations, useConversations, useTransitionStats } from "@/hooks/useConversations";
-import { MessageCircle, MessagesSquare, Users, TrendingUp, Clock, Activity, PhoneOff, Star, ThumbsDown, Briefcase } from "lucide-react";
+import { MessageCircle, Users, Clock, Activity, PhoneOff, Star, ThumbsDown, Briefcase, TrendingUp, CheckCheck, Target, Zap } from "lucide-react";
 import { ConversationsChart } from "@/components/ConversationsChart";
 import { MessageStatusChart } from "@/components/MessageStatusChart";
 import { DateFilter, DateFilterOption, DateRange, getDateRangeForOption } from "@/components/DateFilter";
@@ -11,6 +11,10 @@ import { getMessageTimeMs } from "@/lib/timestamps";
 import { ExportButton } from "@/components/ExportButton";
 import { exportConversations, exportMessages, exportSummaryStats, exportMessageStatus, ExportResult } from "@/lib/exportUtils";
 import { toast } from "@/hooks/use-toast";
+import { KPITile } from "@/components/dashboard/KPITile";
+import { KPIRow } from "@/components/dashboard/KPIRow";
+import { CompareToggle } from "@/components/dashboard/CompareToggle";
+import { useDashboardMetrics, formatResponseTime } from "@/hooks/useDashboardMetrics";
 
 const Dashboard = () => {
   const { t } = useLanguage();
@@ -18,6 +22,7 @@ const Dashboard = () => {
   // Date filter state
   const [dateFilterOption, setDateFilterOption] = useState<DateFilterOption>("allTime");
   const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
+  const [compareEnabled, setCompareEnabled] = useState(false);
   
   // Use React Query hooks for data fetching
   const { data: uniqueConversations = [] } = useUniqueConversations();
@@ -33,16 +38,12 @@ const Dashboard = () => {
   // Compute filtered transition stats client-side
   const filteredTransitionStats = useMemo(() => {
     if (!dateRange.from || !dateRange.to) {
-      // No filter - use API data
       return transitionStatsFromApi || { noResponse: 0, futureInterest: 0, notInterested: 0, createProspect: 0, total: 0 };
     }
     
-    // When filtered, we can compute "No Response" from conversation data
-    // No Response = conversations with only 1 message (no customer reply)
     const fromMs = dateRange.from.getTime();
     const toMs = dateRange.to.getTime();
     
-    // Get filtered unique conversations
     const filteredConvIds = new Set<string>();
     safeUniqueConversations.forEach(conv => {
       const convMs = getMessageTimeMs(conv);
@@ -51,7 +52,6 @@ const Dashboard = () => {
       }
     });
     
-    // Count messages per conversation in the filtered set
     const msgCounts: Record<string, number> = {};
     safeAllConversations.forEach(msg => {
       if (filteredConvIds.has(msg.conversation_id)) {
@@ -59,13 +59,10 @@ const Dashboard = () => {
       }
     });
     
-    // No Response = only 1 message
     const noResponse = Object.values(msgCounts).filter(count => count === 1).length;
     const responded = Object.values(msgCounts).filter(count => count >= 2).length;
     const total = filteredConvIds.size;
     
-    // For other categories, we'd need analysis data which we can't filter client-side
-    // Use proportional estimate based on API totals if available
     if (transitionStatsFromApi && transitionStatsFromApi.total > 0) {
       const respondedFromApi = transitionStatsFromApi.total - transitionStatsFromApi.noResponse;
       if (respondedFromApi > 0) {
@@ -80,16 +77,9 @@ const Dashboard = () => {
       }
     }
     
-    return {
-      noResponse,
-      futureInterest: 0,
-      notInterested: 0,
-      createProspect: 0,
-      total,
-    };
+    return { noResponse, futureInterest: 0, notInterested: 0, createProspect: 0, total };
   }, [dateRange, safeUniqueConversations, safeAllConversations, transitionStatsFromApi]);
   
-  // Use computed stats
   const transitionStats = filteredTransitionStats;
 
   // Handle date filter change
@@ -98,7 +88,16 @@ const Dashboard = () => {
     setDateRange(range);
   };
 
-  // Filter data based on date range
+  // Use the new centralized metrics hook
+  const metrics = useDashboardMetrics({
+    allConversations: safeAllConversations,
+    uniqueConversations: safeUniqueConversations,
+    dateRange,
+    compareEnabled,
+    transitionStats,
+  });
+
+  // Filter data based on date range for legacy components
   const filteredData = useMemo(() => {
     if (!dateRange.from || !dateRange.to) {
       return {
@@ -107,8 +106,8 @@ const Dashboard = () => {
       };
     }
 
-    const fromMs = dateRange.from!.getTime();
-    const toMs = dateRange.to!.getTime();
+    const fromMs = dateRange.from.getTime();
+    const toMs = dateRange.to.getTime();
 
     const filteredUnique = safeUniqueConversations.filter((conv) => {
       const convMs = getMessageTimeMs(conv);
@@ -125,368 +124,6 @@ const Dashboard = () => {
       allConversations: filteredAll,
     };
   }, [safeUniqueConversations, safeAllConversations, dateRange]);
-
-  const totalConversations = useMemo(() => {
-    const ids = new Set<string>();
-    filteredData.allConversations.forEach((m) => {
-      if (m?.conversation_id) ids.add(m.conversation_id);
-    });
-    return ids.size;
-  }, [filteredData.allConversations]);
-
-  const totalMessages = filteredData.allConversations.length;
-  
-  // Calculate conversation message counts for active filtering (filtered)
-  const conversationMessageCounts: Record<string, number> = {};
-  filteredData.allConversations.forEach(message => {
-    if (!conversationMessageCounts[message.conversation_id]) {
-      conversationMessageCounts[message.conversation_id] = 0;
-    }
-    conversationMessageCounts[message.conversation_id]++;
-  });
-  
-  // Active conversations = conversations with 2+ messages
-  const activeConversationIds = new Set(
-    Object.entries(conversationMessageCounts)
-      .filter(([_, count]) => count >= 2)
-      .map(([id]) => id)
-  );
-  const totalActiveConversations = activeConversationIds.size;
-
-  // Calculate global active conversation IDs (for fixed cards like Today)
-  const globalConversationMessageCounts: Record<string, number> = {};
-  safeAllConversations.forEach(message => {
-    if (!globalConversationMessageCounts[message.conversation_id]) {
-      globalConversationMessageCounts[message.conversation_id] = 0;
-    }
-    globalConversationMessageCounts[message.conversation_id]++;
-  });
-  
-  const globalActiveConversationIds = new Set(
-    Object.entries(globalConversationMessageCounts)
-      .filter(([_, count]) => count >= 2)
-      .map(([id]) => id)
-  );
-  
-  // Calculate Avg Messages per Conversation with trend analysis
-  const calculateAvgMessagesPerConversation = () => {
-    if (totalConversations === 0) {
-      return { avg: 0, avgFormatted: "0", trend: 0 };
-    }
-
-    const currentAvg = totalMessages / totalConversations;
-
-    // Calculate trend: compare last 7 days vs previous 7 days
-    const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-
-    // Group messages and conversations by time period
-    const lastWeekMessages = safeAllConversations.filter(msg => {
-      const msgDate = new Date(msg.timestamp);
-      return msgDate >= sevenDaysAgo;
-    });
-
-    const lastWeekConversations = new Set(
-      lastWeekMessages.map(msg => msg.conversation_id)
-    );
-
-    const prevWeekMessages = safeAllConversations.filter(msg => {
-      const msgDate = new Date(msg.timestamp);
-      return msgDate >= fourteenDaysAgo && msgDate < sevenDaysAgo;
-    });
-
-    const prevWeekConversations = new Set(
-      prevWeekMessages.map(msg => msg.conversation_id)
-    );
-
-    const lastWeekAvg = lastWeekConversations.size > 0
-      ? lastWeekMessages.length / lastWeekConversations.size
-      : 0;
-
-    const prevWeekAvg = prevWeekConversations.size > 0
-      ? prevWeekMessages.length / prevWeekConversations.size
-      : 0;
-
-    // Calculate percentage change (positive means more engagement)
-    const trend = prevWeekAvg > 0
-      ? ((lastWeekAvg - prevWeekAvg) / prevWeekAvg) * 100
-      : 0;
-
-    return {
-      avg: currentAvg,
-      avgFormatted: currentAvg.toFixed(1),
-      trend,
-      lastWeekAvg,
-      prevWeekAvg
-    };
-  };
-
-  const {
-    avgFormatted: avgMessagesPerConversation,
-    trend: avgMessagesTrend,
-    lastWeekAvg: lastWeekMsgAvg,
-    prevWeekAvg: prevWeekMsgAvg
-  } = calculateAvgMessagesPerConversation();
-
-  const avgMessagesTrendFormatted = avgMessagesTrend !== 0
-    ? `${Math.abs(avgMessagesTrend).toFixed(1)}%`
-    : "0%";
-  const avgMessagesTrendIcon = avgMessagesTrend >= 0 ? '↑' : '↓';
-  const avgMessagesTrendColor = avgMessagesTrend >= 0 ? 'text-green-600' : 'text-red-600';
-  const avgMessagesTrendText = avgMessagesTrend >= 0 ? 'moreEngagement' : 'lessEngagement';
-
-  // Static cards (always based on current time windows, not the global filter)
-  // To keep numbers consistent with the filtered "Last 7 Days" view, these are computed from messages-in-window.
-
-  const conversationsToday = useMemo(() => {
-    const { from, to } = getDateRangeForOption("today");
-    if (!from || !to) return 0;
-
-    const ids = new Set<string>();
-    safeAllConversations.forEach((msg) => {
-      if (!msg?.conversation_id) return;
-      const ms = getMessageTimeMs(msg);
-      if (ms >= from.getTime() && ms <= to.getTime()) {
-        ids.add(msg.conversation_id);
-      }
-    });
-    return ids.size;
-  }, [safeAllConversations]);
-
-  const activeConversationsToday = useMemo(() => {
-    const { from, to } = getDateRangeForOption("today");
-    if (!from || !to) return 0;
-
-    const counts: Record<string, number> = {};
-    safeAllConversations.forEach((msg) => {
-      if (!msg?.conversation_id) return;
-      const ms = getMessageTimeMs(msg);
-      if (ms >= from.getTime() && ms <= to.getTime()) {
-        counts[msg.conversation_id] = (counts[msg.conversation_id] || 0) + 1;
-      }
-    });
-
-    return Object.values(counts).filter((c) => c >= 2).length;
-  }, [safeAllConversations]);
-
-  const conversationsLastSevenDays = useMemo(() => {
-    const { from, to } = getDateRangeForOption("last7Days");
-    if (!from || !to) return 0;
-
-    const ids = new Set<string>();
-    safeAllConversations.forEach((msg) => {
-      if (!msg?.conversation_id) return;
-      const ms = getMessageTimeMs(msg);
-      if (ms >= from.getTime() && ms <= to.getTime()) {
-        ids.add(msg.conversation_id);
-      }
-    });
-
-    return ids.size;
-  }, [safeAllConversations]);
-
-  const activeConversationsLastSevenDays = useMemo(() => {
-    const { from, to } = getDateRangeForOption("last7Days");
-    if (!from || !to) return 0;
-
-    const counts: Record<string, number> = {};
-    safeAllConversations.forEach((msg) => {
-      if (!msg?.conversation_id) return;
-      const ms = getMessageTimeMs(msg);
-      if (ms >= from.getTime() && ms <= to.getTime()) {
-        counts[msg.conversation_id] = (counts[msg.conversation_id] || 0) + 1;
-      }
-    });
-
-    return Object.values(counts).filter((c) => c >= 2).length;
-  }, [safeAllConversations]);
-
-  // Calculate average response time based on time between messages in a conversation
-  // Returns both all conversations and active-only (2+ messages) stats
-  // Uses filtered data based on date filter
-  const calculateAvgResponseTime = () => {
-    const responseTimes: number[] = [];
-    const activeResponseTimes: number[] = [];
-    
-    // Group messages by conversation_id (using filtered data)
-    const conversationGroups: Record<string, typeof filteredData.allConversations> = {};
-    filteredData.allConversations.forEach(message => {
-      if (!conversationGroups[message.conversation_id]) {
-        conversationGroups[message.conversation_id] = [];
-      }
-      conversationGroups[message.conversation_id].push(message);
-    });
-
-    // For each conversation, calculate response times between consecutive messages
-    Object.entries(conversationGroups).forEach(([convId, messages]) => {
-      const isActive = activeConversationIds.has(convId);
-      
-      // Sort messages by timestamp
-      const sortedMessages = messages.sort((a, b) => 
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      );
-
-      // Calculate time between consecutive messages
-      for (let i = 0; i < sortedMessages.length - 1; i++) {
-        const currentMsg = sortedMessages[i];
-        const nextMsg = sortedMessages[i + 1];
-        
-        const timeDiff = new Date(nextMsg.timestamp).getTime() - new Date(currentMsg.timestamp).getTime();
-        const minutesDiff = timeDiff / (1000 * 60); // Convert to minutes
-        
-        // Only include reasonable response times (> 0 and < 24 hours)
-        if (minutesDiff > 0 && minutesDiff < 1440) {
-          responseTimes.push(minutesDiff);
-          if (isActive) {
-            activeResponseTimes.push(minutesDiff);
-          }
-        }
-      }
-    });
-
-    const formatTime = (avgMinutes: number): string => {
-      if (avgMinutes === 0) return "0 min";
-      if (avgMinutes < 1) {
-        return `${Math.round(avgMinutes * 60)} sec`;
-      } else if (avgMinutes < 60) {
-        return `${avgMinutes.toFixed(1)} min`;
-      } else {
-        const hours = Math.floor(avgMinutes / 60);
-        const mins = Math.round(avgMinutes % 60);
-        return `${hours}h ${mins}m`;
-      }
-    };
-
-    const avgMinutes = responseTimes.length > 0 
-      ? responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length 
-      : 0;
-    
-    const activeAvgMinutes = activeResponseTimes.length > 0
-      ? activeResponseTimes.reduce((sum, time) => sum + time, 0) / activeResponseTimes.length
-      : 0;
-
-    // Calculate trend: compare last 7 days vs previous 7 days
-    const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-
-    const lastWeekTimes: number[] = [];
-    const prevWeekTimes: number[] = [];
-
-    Object.values(conversationGroups).forEach(messages => {
-      const sortedMessages = messages.sort((a, b) => 
-        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      );
-
-      for (let i = 0; i < sortedMessages.length - 1; i++) {
-        const currentMsg = sortedMessages[i];
-        const nextMsg = sortedMessages[i + 1];
-        const msgDate = new Date(nextMsg.timestamp);
-        
-        const timeDiff = new Date(nextMsg.timestamp).getTime() - new Date(currentMsg.timestamp).getTime();
-        const minutesDiff = timeDiff / (1000 * 60);
-        
-        if (minutesDiff > 0 && minutesDiff < 1440) {
-          if (msgDate >= sevenDaysAgo) {
-            lastWeekTimes.push(minutesDiff);
-          } else if (msgDate >= fourteenDaysAgo && msgDate < sevenDaysAgo) {
-            prevWeekTimes.push(minutesDiff);
-          }
-        }
-      }
-    });
-
-    const lastWeekAvg = lastWeekTimes.length > 0 
-      ? lastWeekTimes.reduce((sum, time) => sum + time, 0) / lastWeekTimes.length 
-      : 0;
-    
-    const prevWeekAvg = prevWeekTimes.length > 0 
-      ? prevWeekTimes.reduce((sum, time) => sum + time, 0) / prevWeekTimes.length 
-      : 0;
-
-    // Calculate percentage change (negative means faster/better)
-    const trend = prevWeekAvg > 0 
-      ? ((lastWeekAvg - prevWeekAvg) / prevWeekAvg) * 100 
-      : 0;
-
-    return { 
-      avgTime: avgMinutes, 
-      avgTimeFormatted: formatTime(avgMinutes),
-      activeAvgTime: activeAvgMinutes,
-      activeAvgTimeFormatted: formatTime(activeAvgMinutes),
-      trend 
-    };
-  };
-
-  const { 
-    avgTimeFormatted: avgResponseTime, 
-    activeAvgTimeFormatted: activeAvgResponseTime,
-    trend: avgResponseTimeTrend 
-  } = calculateAvgResponseTime();
-  const avgResponseTimeTrendFormatted = avgResponseTimeTrend !== 0
-    ? `${Math.abs(avgResponseTimeTrend).toFixed(1)}%`
-    : "0%";
-  const avgResponseTimeTrendIcon = avgResponseTimeTrend <= 0 ? '↓' : '↑';
-  const avgResponseTimeTrendColor = avgResponseTimeTrend <= 0 ? 'text-green-600' : 'text-red-600';
-  const avgResponseTimeTrendText = avgResponseTimeTrend <= 0 ? 'fasterThanLastWeek' : 'slowerThanLastWeek';
-  
-  // Calculate Response Rate: percentage of conversations where the customer replied (has 2+ messages)
-  // For "all": uses all conversations as denominator
-  // For "active": this is always 100% by definition, so we show the count instead
-  const calculateResponseRate = () => {
-    if (totalConversations === 0) return { rate: 0, activeCount: 0, trend: 0 };
-
-    // Count conversations with at least 2 messages (customer responded)
-    const conversationsWithResponse = Object.values(conversationMessageCounts)
-      .filter(count => count >= 2).length;
-
-    const currentRate = (conversationsWithResponse / totalConversations) * 100;
-
-    // Calculate trend: compare today vs yesterday
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
-
-    // Group by time period
-    const todayCounts: Record<string, number> = {};
-    const yesterdayCounts: Record<string, number> = {};
-
-    safeAllConversations.forEach(message => {
-      const msgDate = new Date(message.timestamp);
-      
-      if (msgDate >= todayStart) {
-        if (!todayCounts[message.conversation_id]) {
-          todayCounts[message.conversation_id] = 0;
-        }
-        todayCounts[message.conversation_id]++;
-      } else if (msgDate >= yesterdayStart && msgDate < todayStart) {
-        if (!yesterdayCounts[message.conversation_id]) {
-          yesterdayCounts[message.conversation_id] = 0;
-        }
-        yesterdayCounts[message.conversation_id]++;
-      }
-    });
-
-    const todayTotal = Object.keys(todayCounts).length;
-    const todayWithResponse = Object.values(todayCounts).filter(count => count >= 2).length;
-    const todayRate = todayTotal > 0 ? (todayWithResponse / todayTotal) * 100 : 0;
-
-    const yesterdayTotal = Object.keys(yesterdayCounts).length;
-    const yesterdayWithResponse = Object.values(yesterdayCounts).filter(count => count >= 2).length;
-    const yesterdayRate = yesterdayTotal > 0 ? (yesterdayWithResponse / yesterdayTotal) * 100 : 0;
-
-    const trend = yesterdayRate > 0 ? todayRate - yesterdayRate : 0;
-
-    return { rate: currentRate, activeCount: conversationsWithResponse, trend };
-  };
-
-  const { rate: responseRateValue, trend: responseRateTrend } = calculateResponseRate();
-  const responseRate = `${responseRateValue.toFixed(0)}%`;
-  const responseRateTrendFormatted = responseRateTrend >= 0 
-    ? `↑ ${Math.abs(responseRateTrend).toFixed(1)}%`
-    : `↓ ${Math.abs(responseRateTrend).toFixed(1)}%`;
-  const responseRateTrendColor = responseRateTrend >= 0 ? 'text-green-600' : 'text-red-600';
 
   // Export handlers
   const showExportToast = useCallback((result: ExportResult) => {
@@ -507,28 +144,6 @@ const Dashboard = () => {
     showExportToast(result);
   }, [filteredData.allConversations, dateFilterOption, showExportToast]);
 
-  const handleExportToday = useCallback(() => {
-    const { from, to } = getDateRangeForOption("today");
-    if (!from || !to) return;
-    const todayConvs = safeAllConversations.filter((msg) => {
-      const ms = getMessageTimeMs(msg);
-      return ms >= from.getTime() && ms <= to.getTime();
-    });
-    const result = exportMessages(todayConvs, 'conversations_today.csv');
-    showExportToast(result);
-  }, [safeAllConversations, showExportToast]);
-
-  const handleExportLast7Days = useCallback(() => {
-    const { from, to } = getDateRangeForOption("last7Days");
-    if (!from || !to) return;
-    const weekConvs = safeAllConversations.filter((msg) => {
-      const ms = getMessageTimeMs(msg);
-      return ms >= from.getTime() && ms <= to.getTime();
-    });
-    const result = exportMessages(weekConvs, 'conversations_last_7_days.csv');
-    showExportToast(result);
-  }, [safeAllConversations, showExportToast]);
-
   const handleExportMessageStatus = useCallback(() => {
     const result = exportMessageStatus(filteredData.allConversations, `message_status_${dateFilterOption}.csv`);
     showExportToast(result);
@@ -546,33 +161,6 @@ const Dashboard = () => {
       showExportToast(result);
     }
   }, [transitionStats, dateFilterOption, showExportToast]);
-
-  const handleExportAvgMessages = useCallback(() => {
-    const result = exportSummaryStats({
-      'Average Messages per Conversation': avgMessagesPerConversation,
-      'Last Week Average': lastWeekMsgAvg?.toFixed(1) || 'N/A',
-      'Previous Week Average': prevWeekMsgAvg?.toFixed(1) || 'N/A',
-      'Trend': avgMessagesTrendFormatted
-    }, `avg_messages_${dateFilterOption}.csv`);
-    showExportToast(result);
-  }, [avgMessagesPerConversation, lastWeekMsgAvg, prevWeekMsgAvg, avgMessagesTrendFormatted, dateFilterOption, showExportToast]);
-
-  const handleExportResponseTime = useCallback(() => {
-    const result = exportSummaryStats({
-      'Average Response Time (All)': avgResponseTime,
-      'Average Response Time (Active)': activeAvgResponseTime,
-      'Trend': avgResponseTimeTrendFormatted
-    }, `response_time_${dateFilterOption}.csv`);
-    showExportToast(result);
-  }, [avgResponseTime, activeAvgResponseTime, avgResponseTimeTrendFormatted, dateFilterOption, showExportToast]);
-
-  const handleExportResponseRate = useCallback(() => {
-    const result = exportSummaryStats({
-      'Response Rate': responseRate,
-      'Trend': responseRateTrendFormatted
-    }, `response_rate_${dateFilterOption}.csv`);
-    showExportToast(result);
-  }, [responseRate, responseRateTrendFormatted, dateFilterOption, showExportToast]);
 
   if (isLoadingAll) {
     return (
@@ -597,258 +185,108 @@ const Dashboard = () => {
                 <h1 className="text-xl md:text-3xl font-bold text-gray-900 tracking-tight">{t('salesDashboard')}</h1>
                 <p className="text-sm md:text-base text-gray-500 mt-1">{t('trackAndAnalyze')}</p>
               </div>
-              <DateFilter
-                value={dateFilterOption}
-                dateRange={dateRange}
-                onChange={handleDateFilterChange}
-              />
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <CompareToggle enabled={compareEnabled} onChange={setCompareEnabled} />
+                <DateFilter
+                  value={dateFilterOption}
+                  dateRange={dateRange}
+                  onChange={handleDateFilterChange}
+                />
+              </div>
             </div>
           </div>
         </header>
 
         <main className="px-4 md:px-8 py-6 md:py-8 space-y-6">
-          {/* Main Metrics Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            {/* Total Conversations Card - Dual Stats */}
-            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('totalConversations')}</CardTitle>
-                <div className="flex items-center gap-1">
-                  <ExportButton onClick={handleExportConversations} />
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
-                        <Users className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>{t('activeConversationsTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              </CardHeader>
-              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="flex items-end gap-4">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wider font-medium">{t('all')}</span>
-                    <span className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{totalConversations}</span>
-                  </div>
-                  <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-200 to-transparent"></div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] md:text-xs text-primary uppercase tracking-wider font-semibold">{t('active')}</span>
-                    <span className="text-xl md:text-3xl font-bold text-primary tabular-nums">{totalActiveConversations}</span>
-                  </div>
-                </div>
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className="text-[11px] md:text-xs text-gray-500 flex items-center gap-1">
-                    <span className="inline-block w-2 h-2 rounded-full bg-primary/20"></span>
-                    {((totalActiveConversations / totalConversations) * 100 || 0).toFixed(0)}% {(t('responseRate') || '').toLowerCase()}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Row 1: North Star KPI Tiles */}
+          <KPIRow>
+            {/* 1. Conversations Started */}
+            <KPITile
+              title={t('conversationsStarted')}
+              value={metrics.conversationsStarted}
+              icon={MessageCircle}
+              iconColor="text-blue-600"
+              iconBgColor="bg-blue-100"
+              delta={metrics.conversationsStartedDelta}
+              deltaLabel={t('vsPreviousPeriod')}
+              sparklineData={metrics.conversationsSparkline}
+              tooltip={t('conversationsStartedTooltip')}
+              compareEnabled={compareEnabled}
+            />
 
-            {/* Total Messages Card */}
-            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('totalMessages')}</CardTitle>
-                <div className="flex items-center gap-1">
-                  <ExportButton onClick={handleExportMessages} />
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
-                        <MessagesSquare className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>{t('totalMessagesTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              </CardHeader>
-              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{totalMessages}</div>
-              </CardContent>
-            </Card>
+            {/* 2. Active Rate */}
+            <KPITile
+              title={t('activeRate')}
+              value={`${metrics.activeRate.toFixed(0)}%`}
+              subtitle={`${metrics.activeConversations} / ${metrics.conversationsStarted}`}
+              icon={Users}
+              iconColor="text-green-600"
+              iconBgColor="bg-green-100"
+              delta={metrics.activeRateDelta}
+              deltaLabel={t('vsPreviousPeriod')}
+              sparklineData={metrics.activeSparkline}
+              tooltip={t('activeRateTooltip')}
+              compareEnabled={compareEnabled}
+            />
 
-            {/* Avg Messages per Conversation Card */}
-            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('avgMessagesPerConversation')}</CardTitle>
-                <div className="flex items-center gap-1">
-                  <ExportButton onClick={handleExportAvgMessages} />
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
-                        <MessageCircle className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>{t('avgMessagesPerConversationTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              </CardHeader>
-              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{avgMessagesPerConversation}</div>
-                {avgMessagesTrend !== 0 && (
-                  <p className={`text-[11px] md:text-xs ${avgMessagesTrendColor} mt-2 flex items-center gap-1`}>
-                    <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${avgMessagesTrend >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
-                      {avgMessagesTrendIcon} {avgMessagesTrendFormatted}
-                    </span>
-                    <span className="text-gray-500">{t(avgMessagesTrendText)}</span>
-                  </p>
-                )}
-                {lastWeekMsgAvg > 0 && prevWeekMsgAvg > 0 && (
-                  <p className="text-[10px] md:text-xs text-gray-400 mt-2 hidden md:block">
-                    {t('lastWeek')}: {lastWeekMsgAvg.toFixed(1)} | {t('prevWeek')}: {prevWeekMsgAvg.toFixed(1)}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+            {/* 3. Response Rate */}
+            <KPITile
+              title={t('responseRate')}
+              value={`${metrics.responseRate.toFixed(0)}%`}
+              icon={TrendingUp}
+              iconColor="text-purple-600"
+              iconBgColor="bg-purple-100"
+              delta={metrics.responseRateDelta}
+              deltaLabel={t('vsPreviousPeriod')}
+              tooltip={t('responseRateTooltip')}
+              compareEnabled={compareEnabled}
+            />
 
-            {/* Conversations Today Card - Dual Stats */}
-            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('conversationsToday')}</CardTitle>
-                <div className="flex items-center gap-1">
-                  <ExportButton onClick={handleExportToday} />
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
-                        <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>{t('conversationsTodayTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              </CardHeader>
-              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="flex items-end gap-4">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wider font-medium">{t('all')}</span>
-                    <span className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{conversationsToday}</span>
-                  </div>
-                  <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-200 to-transparent"></div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] md:text-xs text-primary uppercase tracking-wider font-semibold">{t('active')}</span>
-                    <span className="text-xl md:text-3xl font-bold text-primary tabular-nums">{activeConversationsToday}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+            {/* 4. First Response Time */}
+            <KPITile
+              title={t('firstResponseTime')}
+              value={formatResponseTime(metrics.firstResponseTimeMedian)}
+              subtitle={`${t('p90Abbrev')}: ${formatResponseTime(metrics.firstResponseTimeP90)} · ${metrics.slaCompliance5min.toFixed(0)}% ${t('within5min')}`}
+              icon={Clock}
+              iconColor="text-amber-600"
+              iconBgColor="bg-amber-100"
+              delta={metrics.firstResponseDelta}
+              deltaLabel={t('vsPreviousPeriod')}
+              tooltip={t('firstResponseTimeTooltip')}
+              compareEnabled={compareEnabled}
+            />
 
-          {/* Message Status Cards */}
+            {/* 5. Delivery Rate */}
+            <KPITile
+              title={t('deliveryRate')}
+              value={`${metrics.deliverySuccessRate.toFixed(0)}%`}
+              subtitle={`${metrics.failedRate.toFixed(1)}% ${t('failed')}`}
+              icon={CheckCheck}
+              iconColor="text-teal-600"
+              iconBgColor="bg-teal-100"
+              delta={metrics.deliverySuccessRateDelta}
+              deltaLabel={t('vsPreviousPeriod')}
+              tooltip={t('deliveryRateTooltip')}
+              compareEnabled={compareEnabled}
+            />
+
+            {/* 6. Prospect Rate */}
+            <KPITile
+              title={t('prospectRate')}
+              value={`${metrics.prospectCreationRate.toFixed(0)}%`}
+              subtitle={`${metrics.prospectCount} ${t('prospects')}`}
+              icon={Target}
+              iconColor="text-rose-600"
+              iconBgColor="bg-rose-100"
+              delta={metrics.prospectCreationRateDelta}
+              deltaLabel={t('vsPreviousPeriod')}
+              tooltip={t('prospectRateTooltip')}
+              compareEnabled={compareEnabled}
+            />
+          </KPIRow>
+
+          {/* Message Status Analytics */}
           <MessageStatusChart conversations={filteredData.allConversations} onExport={handleExportMessageStatus} />
-
-          {/* Secondary Statistics Row */}
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {/* Conversations Last 7 Days */}
-            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('conversationsLastSevenDays')}</CardTitle>
-                <div className="flex items-center gap-1">
-                  <ExportButton onClick={handleExportLast7Days} />
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
-                        <Activity className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>{t('activeLastSevenDaysTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              </CardHeader>
-              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="flex items-end gap-4">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] md:text-xs text-gray-400 uppercase tracking-wider font-medium">{t('all')}</span>
-                    <span className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{conversationsLastSevenDays}</span>
-                  </div>
-                  <div className="w-px h-10 bg-gradient-to-b from-transparent via-gray-200 to-transparent"></div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] md:text-xs text-primary uppercase tracking-wider font-semibold">{t('active')}</span>
-                    <span className="text-xl md:text-3xl font-bold text-primary tabular-nums">{activeConversationsLastSevenDays}</span>
-                  </div>
-                </div>
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className="text-[11px] md:text-xs text-gray-500 flex items-center gap-1">
-                    <span className="inline-block w-2 h-2 rounded-full bg-primary/20"></span>
-                    {((activeConversationsLastSevenDays / conversationsLastSevenDays) * 100 || 0).toFixed(0)}% {t('ofTotal')}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Average Response Time */}
-            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('avgResponseTimeFull')}</CardTitle>
-                <div className="flex items-center gap-1">
-                  <ExportButton onClick={handleExportResponseTime} />
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
-                        <Clock className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>{t('avgResponseTimeTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              </CardHeader>
-              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{activeAvgResponseTime}</div>
-                {avgResponseTimeTrend !== 0 && (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className={`text-[11px] md:text-xs ${avgResponseTimeTrendColor} flex items-center gap-1`}>
-                      <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${avgResponseTimeTrend <= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
-                        {avgResponseTimeTrendIcon} {avgResponseTimeTrendFormatted}
-                      </span>
-                      <span className="text-gray-500">{t(avgResponseTimeTrendText)}</span>
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Response Rate */}
-            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group col-span-2 lg:col-span-1">
-              <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 md:px-6 pt-4 md:pt-6">
-                <CardTitle className="text-[11px] md:text-sm font-semibold text-gray-700">{t('responseRate')}</CardTitle>
-                <div className="flex items-center gap-1">
-                  <ExportButton onClick={handleExportResponseRate} />
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-primary/5 transition-colors cursor-help">
-                        <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-gray-500 group-hover:text-primary transition-colors" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>{t('responseRateTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              </CardHeader>
-              <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                <div className="text-xl md:text-3xl font-bold text-gray-900 tabular-nums">{responseRate}</div>
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                  <p className={`text-[11px] md:text-xs ${responseRateTrendColor} flex items-center gap-1`}>
-                    <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${responseRateTrend >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
-                      {responseRateTrendFormatted}
-                    </span>
-                    <span className="text-gray-500">{t('fromYesterday')}</span>
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
 
           {/* Transition Statistics */}
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
