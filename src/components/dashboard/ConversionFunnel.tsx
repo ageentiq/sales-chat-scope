@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { FunnelStage, OutcomeBreakdown } from "@/hooks/useDashboardMetrics";
-import { ChevronRight, Users, Send, CheckCheck, Eye, MessageCircle, Target } from "lucide-react";
+import { Users, Check, CheckCheck, MessageSquare, XCircle, Target } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ConversionFunnelProps {
@@ -12,16 +12,25 @@ interface ConversionFunnelProps {
 export const ConversionFunnel = ({ stages, outcomes }: ConversionFunnelProps) => {
   const { t, language } = useLanguage();
 
-  const getStageIcon = (id: string) => {
+  // Returns icon component and custom color class for WhatsApp-style status
+  const getStageIconConfig = (id: string): { Icon: typeof Users; colorClass: string } => {
     switch (id) {
-      case 'conversations': return Users;
-      case 'failed': return Send;
-      case 'sent': return Send;
-      case 'delivered': return CheckCheck;
-      case 'read': return Eye;
-      case 'active': return MessageCircle;
-      case 'outcomes': return Target;
-      default: return Users;
+      case 'conversations': 
+        return { Icon: Users, colorClass: 'text-white' };
+      case 'failed': 
+        return { Icon: XCircle, colorClass: 'text-white' };
+      case 'sent': 
+        return { Icon: Check, colorClass: 'text-gray-500' };
+      case 'delivered': 
+        return { Icon: CheckCheck, colorClass: 'text-gray-500' };
+      case 'read': 
+        return { Icon: CheckCheck, colorClass: 'text-green-500' };
+      case 'active': 
+        return { Icon: MessageSquare, colorClass: 'text-white' };
+      case 'outcomes': 
+        return { Icon: Target, colorClass: 'text-white' };
+      default: 
+        return { Icon: Users, colorClass: 'text-white' };
     }
   };
 
@@ -45,7 +54,8 @@ export const ConversionFunnel = ({ stages, outcomes }: ConversionFunnelProps) =>
         {/* Funnel Stages */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {stages.map((stage, index) => {
-            const Icon = getStageIcon(stage.id);
+            const { Icon, colorClass } = getStageIconConfig(stage.id);
+            const useWhiteBackground = ['sent', 'delivered', 'read'].includes(stage.id);
 
             return (
               <Tooltip key={stage.id}>
@@ -54,8 +64,8 @@ export const ConversionFunnel = ({ stages, outcomes }: ConversionFunnelProps) =>
                     className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200 hover:border-primary/30 hover:shadow-md transition-all cursor-default"
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <div className={`p-2 rounded-lg ${stage.color}`}>
-                        <Icon className="h-4 w-4 text-white" />
+                      <div className={`p-2 rounded-lg ${useWhiteBackground ? 'bg-white border border-gray-200' : stage.color}`}>
+                        <Icon className={`h-4 w-4 ${colorClass}`} />
                       </div>
                     </div>
                     <div className="text-sm font-medium text-gray-600 mb-1">
