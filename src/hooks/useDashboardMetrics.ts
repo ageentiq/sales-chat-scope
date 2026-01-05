@@ -339,16 +339,63 @@ export const useDashboardMetrics = ({
       return days;
     };
 
-    // Build funnel stages
-    const totalSent = currentStatus.sent + currentStatus.delivered + currentStatus.read + currentStatus.failed;
-    const totalDelivered = currentStatus.delivered + currentStatus.read;
-    const totalRead = currentStatus.read;
+    // Build funnel stages - count UNIQUE CONVERSATIONS (customers) at each stage
+    const calculateUniqueFunnelStages = (data: ConversationMessage[]) => {
+      const conversationStatuses: Record<string, { sent: boolean; delivered: boolean; read: boolean; active: boolean }> = {};
+      
+      // Group messages by conversation and determine each conversation's best status
+      data.forEach(msg => {
+        const convId = msg.conversation_id;
+        if (!conversationStatuses[convId]) {
+          conversationStatuses[convId] = { sent: false, delivered: false, read: false, active: false };
+        }
+        
+        // Only check outbound messages for status tracking
+        const msgTime = getMessageTimeMs(msg);
+        if (msgTime >= STATUS_TRACKING_START && msg.outbound) {
+          const status = (msg as any).latestStatus;
+          if (status === 'sent' || status === 'delivered' || status === 'read') {
+            conversationStatuses[convId].sent = true;
+          }
+          if (status === 'delivered' || status === 'read') {
+            conversationStatuses[convId].delivered = true;
+          }
+          if (status === 'read') {
+            conversationStatuses[convId].read = true;
+          }
+        }
+      });
+      
+      // Mark active conversations (those with 2+ messages indicating back-and-forth)
+      const messageCounts: Record<string, number> = {};
+      data.forEach(msg => {
+        messageCounts[msg.conversation_id] = (messageCounts[msg.conversation_id] || 0) + 1;
+      });
+      Object.keys(conversationStatuses).forEach(convId => {
+        if (messageCounts[convId] >= 2) {
+          conversationStatuses[convId].active = true;
+        }
+      });
+      
+      // Count unique conversations at each stage
+      let sentCount = 0, deliveredCount = 0, readCount = 0, activeCount = 0;
+      Object.values(conversationStatuses).forEach(status => {
+        if (status.sent) sentCount++;
+        if (status.delivered) deliveredCount++;
+        if (status.read) readCount++;
+        if (status.active) activeCount++;
+      });
+      
+      return { sentCount, deliveredCount, readCount, activeCount };
+    };
+    
+    const uniqueStages = calculateUniqueFunnelStages(currentData);
     
     const funnelStages: FunnelStage[] = [
       {
         id: 'conversations',
-        label: 'Conversations',
-        labelAr: 'المحادثات',
+        label: 'Started',
+        labelAr: 'بدأت',
         count: conversationsStarted,
         conversionRate: 100,
         color: 'bg-blue-500',
@@ -357,32 +404,32 @@ export const useDashboardMetrics = ({
         id: 'sent',
         label: 'Sent',
         labelAr: 'مُرسل',
-        count: totalSent,
-        conversionRate: conversationsStarted > 0 ? (totalSent / conversationsStarted) * 100 : 0,
+        count: uniqueStages.sentCount,
+        conversionRate: conversationsStarted > 0 ? (uniqueStages.sentCount / conversationsStarted) * 100 : 0,
         color: 'bg-gray-500',
       },
       {
         id: 'delivered',
         label: 'Delivered',
-        labelAr: 'تم الإرسال',
-        count: totalDelivered,
-        conversionRate: totalSent > 0 ? (totalDelivered / totalSent) * 100 : 0,
+        labelAr: 'تم التوصيل',
+        count: uniqueStages.deliveredCount,
+        conversionRate: uniqueStages.sentCount > 0 ? (uniqueStages.deliveredCount / uniqueStages.sentCount) * 100 : 0,
         color: 'bg-teal-500',
       },
       {
         id: 'read',
         label: 'Read',
         labelAr: 'تمت القراءة',
-        count: totalRead,
-        conversionRate: totalDelivered > 0 ? (totalRead / totalDelivered) * 100 : 0,
+        count: uniqueStages.readCount,
+        conversionRate: uniqueStages.deliveredCount > 0 ? (uniqueStages.readCount / uniqueStages.deliveredCount) * 100 : 0,
         color: 'bg-blue-600',
       },
       {
         id: 'active',
-        label: 'Active',
-        labelAr: 'نشط',
-        count: activeConversations,
-        conversionRate: conversationsStarted > 0 ? (activeConversations / conversationsStarted) * 100 : 0,
+        label: 'Responded',
+        labelAr: 'استجابوا',
+        count: uniqueStages.activeCount,
+        conversionRate: uniqueStages.readCount > 0 ? (uniqueStages.activeCount / uniqueStages.readCount) * 100 : 0,
         color: 'bg-purple-500',
       },
     ];
