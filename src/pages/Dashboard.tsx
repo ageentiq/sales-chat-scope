@@ -3,7 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUniqueConversations, useConversations, useTransitionStats } from "@/hooks/useConversations";
-import { MessageCircle, Users, Clock, PhoneOff, Star, ThumbsDown, Briefcase, TrendingUp, CheckCheck, Target } from "lucide-react";
+import { MessageCircle, Users, Clock, PhoneOff, Star, ThumbsDown, Briefcase, TrendingUp, CheckCheck, Target, Download } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { DateFilter, DateFilterOption, DateRange, getDateRangeForOption } from "@/components/DateFilter";
 import { getMessageTimeMs } from "@/lib/timestamps";
 import { ExportButton } from "@/components/ExportButton";
@@ -193,6 +195,28 @@ const Dashboard = () => {
                   dateRange={dateRange}
                   onChange={handleDateFilterChange}
                 />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Download className="h-4 w-4" />
+                      {t('export') || 'Export'}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleExportConversations}>
+                      {t('exportConversations') || 'Export Conversations'}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportMessages}>
+                      {t('exportMessages') || 'Export Messages'}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportMessageStatus}>
+                      {t('exportMessageStatus') || 'Export Message Status'}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportTransitionStats}>
+                      {t('exportTransitionStats') || 'Export Transition Stats'}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
