@@ -215,20 +215,6 @@ const Dashboard = () => {
               compareEnabled={compareEnabled}
             />
 
-            {/* 2. Active Rate */}
-            <KPITile
-              title={t('activeRate')}
-              value={`${metrics.activeRate.toFixed(0)}%`}
-              subtitle={`${metrics.activeConversations} / ${metrics.conversationsStarted}`}
-              icon={Users}
-              iconColor="text-green-600"
-              iconBgColor="bg-green-100"
-              delta={metrics.activeRateDelta}
-              deltaLabel={t('vsPreviousPeriod')}
-              sparklineData={metrics.activeSparkline}
-              tooltip={t('activeRateTooltip')}
-              compareEnabled={compareEnabled}
-            />
 
             {/* 3. Response Rate */}
             <KPITile
