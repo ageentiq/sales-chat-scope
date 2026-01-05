@@ -1,13 +1,20 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, MessageCircle, Inbox, ChevronLeft, ChevronRight, User, Bot, Check, CheckCheck, AlertCircle } from "lucide-react";
+import { Search, MessageCircle, Inbox, ChevronLeft, ChevronRight, User, Bot, Check, CheckCheck, AlertCircle, Filter } from "lucide-react";
 import { MessageStatus } from "@/data/mockData";
 import { useUniqueConversations } from "@/hooks/useConversations";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { getMessageTimeMs } from "@/lib/timestamps";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ConversationListProps {
   onConversationSelect: (conversationId: string) => void;
@@ -62,6 +69,7 @@ export const ConversationList = ({
 }: ConversationListProps) => {
   const { t, language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const { data: conversations = [], isLoading } = useUniqueConversations();
@@ -70,6 +78,14 @@ export const ConversationList = ({
 
   const filteredConversations = safeConversations
     .filter(conv => {
+      // Status filter
+      if (statusFilter !== "all") {
+        if (!conv.latestStatus || conv.latestStatus !== statusFilter) {
+          return false;
+        }
+      }
+      
+      // Search filter
       const searchLower = searchTerm.toLowerCase();
       const conversationId = conv.conversation_id?.toLowerCase() || '';
       const inbound = conv.inbound?.toLowerCase() || '';
@@ -86,6 +102,11 @@ export const ConversationList = ({
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
     setCurrentPage(1);
   };
 
@@ -142,15 +163,30 @@ export const ConversationList = ({
           </div>
         </div>
         
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
-          <Input
-            placeholder={t('searchConversations')}
-            value={searchTerm}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            className="pl-10 h-11 bg-gray-50/80 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all text-sm placeholder:text-gray-400"
-          />
+        {/* Search and Filter */}
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
+            <Input
+              placeholder={t('searchConversations')}
+              value={searchTerm}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="pl-10 h-11 bg-gray-50/80 border-0 rounded-xl focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all text-sm placeholder:text-gray-400"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+            <SelectTrigger className="w-[130px] h-11 bg-gray-50/80 border-0 rounded-xl focus:ring-2 focus:ring-primary/20">
+              <Filter className="h-4 w-4 text-gray-400 mr-2" />
+              <SelectValue placeholder={t('filterByStatus')} />
+            </SelectTrigger>
+            <SelectContent className="bg-white border border-gray-200 shadow-lg rounded-xl z-50">
+              <SelectItem value="all">{t('all')}</SelectItem>
+              <SelectItem value="sent">{t('statusSent')}</SelectItem>
+              <SelectItem value="delivered">{t('statusDelivered')}</SelectItem>
+              <SelectItem value="read">{t('statusRead')}</SelectItem>
+              <SelectItem value="failed">{t('statusFailed')}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </CardHeader>
 

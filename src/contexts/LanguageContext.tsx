@@ -153,6 +153,7 @@ const translations = {
     to: 'إلى',
     apply: 'تطبيق',
     filterByDate: 'تصفية حسب التاريخ',
+    filterByStatus: 'تصفية حسب الحالة',
     // Conversation list & status
     previous: 'السابق',
     next: 'التالي',
@@ -336,6 +337,7 @@ const translations = {
     to: 'To',
     apply: 'Apply',
     filterByDate: 'Filter by date',
+    filterByStatus: 'Filter by status',
     // Conversation list & status
     previous: 'Previous',
     next: 'Next',
