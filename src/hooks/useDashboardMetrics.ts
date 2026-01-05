@@ -339,75 +339,70 @@ export const useDashboardMetrics = ({
       return days;
     };
 
-    // Build funnel stages - count UNIQUE CONVERSATIONS at their CURRENT stage (no double counting)
+    // Build funnel stages - count UNIQUE CONVERSATIONS in EXCLUSIVE stages (each conversation in only ONE stage)
     const calculateUniqueFunnelStages = (data: ConversationMessage[]) => {
-      // Determine each conversation's highest status and whether it has responses
-      const conversationInfo: Record<string, { highestStatus: 'none' | 'sent' | 'delivered' | 'read'; hasResponses: boolean }> = {};
+      // Determine each conversation's status: failed, sent, delivered, read, or responded
+      const conversationInfo: Record<string, { status: 'failed' | 'sent' | 'delivered' | 'read' | 'responded' }> = {};
       
-      // First pass: determine highest message status for each conversation
+      // First pass: determine the best message status for each conversation
       data.forEach(msg => {
         const convId = msg.conversation_id;
         if (!conversationInfo[convId]) {
-          conversationInfo[convId] = { highestStatus: 'none', hasResponses: false };
+          conversationInfo[convId] = { status: 'failed' }; // Default to failed
         }
         
         // Only check outbound messages for status tracking
         const msgTime = getMessageTimeMs(msg);
         if (msgTime >= STATUS_TRACKING_START && msg.outbound) {
-          const status = (msg as any).latestStatus;
-          const current = conversationInfo[convId].highestStatus;
+          const latestStatus = (msg as any).latestStatus;
+          const current = conversationInfo[convId].status;
           
-          // Upgrade status hierarchy: none < sent < delivered < read
-          if (status === 'read') {
-            conversationInfo[convId].highestStatus = 'read';
-          } else if (status === 'delivered' && current !== 'read') {
-            conversationInfo[convId].highestStatus = 'delivered';
-          } else if (status === 'sent' && current === 'none') {
-            conversationInfo[convId].highestStatus = 'sent';
+          // Status hierarchy: failed < sent < delivered < read
+          // Upgrade to the best status seen
+          if (latestStatus === 'read') {
+            conversationInfo[convId].status = 'read';
+          } else if (latestStatus === 'delivered' && current !== 'read') {
+            conversationInfo[convId].status = 'delivered';
+          } else if (latestStatus === 'sent' && (current === 'failed')) {
+            conversationInfo[convId].status = 'sent';
           }
         }
       });
       
-      // Second pass: check for responses (2+ messages = customer responded)
+      // Second pass: check for responses (2+ messages = customer responded) - this overrides read status
       const messageCounts: Record<string, number> = {};
       data.forEach(msg => {
         messageCounts[msg.conversation_id] = (messageCounts[msg.conversation_id] || 0) + 1;
       });
       Object.keys(conversationInfo).forEach(convId => {
         if (messageCounts[convId] >= 2) {
-          conversationInfo[convId].hasResponses = true;
+          conversationInfo[convId].status = 'responded';
         }
       });
       
       // Count conversations in EXCLUSIVE stages (each conversation in only one stage)
-      let sentOnlyCount = 0;      // Sent but not delivered
-      let deliveredOnlyCount = 0; // Delivered but not read
-      let readOnlyCount = 0;      // Read but not responded
-      let respondedCount = 0;     // Responded (2+ messages)
+      let failedCount = 0;    // Failed to send
+      let sentCount = 0;      // Sent but not delivered
+      let deliveredCount = 0; // Delivered but not read
+      let readCount = 0;      // Read but not responded
+      let respondedCount = 0; // Responded (2+ messages)
       
       Object.values(conversationInfo).forEach(info => {
-        if (info.hasResponses) {
-          respondedCount++;
-        } else if (info.highestStatus === 'read') {
-          readOnlyCount++;
-        } else if (info.highestStatus === 'delivered') {
-          deliveredOnlyCount++;
-        } else if (info.highestStatus === 'sent') {
-          sentOnlyCount++;
+        switch (info.status) {
+          case 'failed': failedCount++; break;
+          case 'sent': sentCount++; break;
+          case 'delivered': deliveredCount++; break;
+          case 'read': readCount++; break;
+          case 'responded': respondedCount++; break;
         }
       });
       
-      return { sentOnlyCount, deliveredOnlyCount, readOnlyCount, respondedCount };
+      return { failedCount, sentCount, deliveredCount, readCount, respondedCount };
     };
     
     const uniqueStages = calculateUniqueFunnelStages(currentData);
     
-    // For funnel visualization, show cumulative "reached this stage or beyond"
-    const respondedTotal = uniqueStages.respondedCount;
-    const readTotal = uniqueStages.readOnlyCount + respondedTotal;
-    const deliveredTotal = uniqueStages.deliveredOnlyCount + readTotal;
-    const sentTotal = uniqueStages.sentOnlyCount + deliveredTotal;
-    
+    // Funnel now shows EXCLUSIVE counts - each conversation in only ONE stage
     const funnelStages: FunnelStage[] = [
       {
         id: 'conversations',
@@ -418,35 +413,43 @@ export const useDashboardMetrics = ({
         color: 'bg-blue-500',
       },
       {
+        id: 'failed',
+        label: 'Failed',
+        labelAr: 'فشل',
+        count: uniqueStages.failedCount,
+        conversionRate: conversationsStarted > 0 ? (uniqueStages.failedCount / conversationsStarted) * 100 : 0,
+        color: 'bg-red-500',
+      },
+      {
         id: 'sent',
         label: 'Sent',
         labelAr: 'مُرسل',
-        count: sentTotal,
-        conversionRate: conversationsStarted > 0 ? (sentTotal / conversationsStarted) * 100 : 0,
+        count: uniqueStages.sentCount,
+        conversionRate: conversationsStarted > 0 ? (uniqueStages.sentCount / conversationsStarted) * 100 : 0,
         color: 'bg-gray-500',
       },
       {
         id: 'delivered',
         label: 'Delivered',
         labelAr: 'تم التوصيل',
-        count: deliveredTotal,
-        conversionRate: sentTotal > 0 ? (deliveredTotal / sentTotal) * 100 : 0,
+        count: uniqueStages.deliveredCount,
+        conversionRate: conversationsStarted > 0 ? (uniqueStages.deliveredCount / conversationsStarted) * 100 : 0,
         color: 'bg-teal-500',
       },
       {
         id: 'read',
         label: 'Read',
         labelAr: 'تمت القراءة',
-        count: readTotal,
-        conversionRate: deliveredTotal > 0 ? (readTotal / deliveredTotal) * 100 : 0,
+        count: uniqueStages.readCount,
+        conversionRate: conversationsStarted > 0 ? (uniqueStages.readCount / conversationsStarted) * 100 : 0,
         color: 'bg-blue-600',
       },
       {
         id: 'active',
         label: 'Responded',
         labelAr: 'استجابوا',
-        count: respondedTotal,
-        conversionRate: readTotal > 0 ? (respondedTotal / readTotal) * 100 : 0,
+        count: uniqueStages.respondedCount,
+        conversionRate: conversationsStarted > 0 ? (uniqueStages.respondedCount / conversationsStarted) * 100 : 0,
         color: 'bg-purple-500',
       },
     ];
