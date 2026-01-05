@@ -188,7 +188,6 @@ const Dashboard = () => {
                 <p className="text-sm md:text-base text-gray-500 mt-1">{t('trackAndAnalyze')}</p>
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <CompareToggle enabled={compareEnabled} onChange={setCompareEnabled} />
                 <DateFilter
                   value={dateFilterOption}
                   dateRange={dateRange}
