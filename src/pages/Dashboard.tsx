@@ -15,6 +15,7 @@ import { KPITile } from "@/components/dashboard/KPITile";
 import { KPIRow } from "@/components/dashboard/KPIRow";
 import { CompareToggle } from "@/components/dashboard/CompareToggle";
 import { ConversionFunnel } from "@/components/dashboard/ConversionFunnel";
+import { TrendsChart } from "@/components/dashboard/TrendsChart";
 import { useDashboardMetrics, formatResponseTime } from "@/hooks/useDashboardMetrics";
 
 const Dashboard = () => {
@@ -290,6 +291,12 @@ const Dashboard = () => {
           <ConversionFunnel 
             stages={metrics.funnelStages} 
             outcomes={metrics.outcomeBreakdown} 
+          />
+
+          {/* Row 3: Trends Over Time */}
+          <TrendsChart 
+            allConversations={safeAllConversations} 
+            transitionStats={transitionStats}
           />
 
           {/* Message Status Analytics */}
