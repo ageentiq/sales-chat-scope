@@ -226,6 +226,14 @@ const translations = {
     weekly: 'أسبوعي',
     activeConversations: 'المحادثات النشطة',
     failedRate: 'معدل الفشل',
+    // Phase 4 Diagnostics
+    statusDistribution: 'توزيع الحالات',
+    deliveredNotRead: 'تم التسليم (لم تُقرأ)',
+    failureReasons: 'أسباب الفشل',
+    noFailures: 'لا يوجد فشل',
+    engagementDepth: 'عمق التفاعل',
+    median: 'الوسيط',
+    noData: 'لا توجد بيانات',
   },
   en: {
     home: 'Home',
@@ -442,6 +450,14 @@ const translations = {
     weekly: 'Weekly',
     activeConversations: 'Active Conversations',
     failedRate: 'Failed Rate',
+    // Phase 4 Diagnostics
+    statusDistribution: 'Status Distribution',
+    deliveredNotRead: 'Delivered (not read)',
+    failureReasons: 'Failure Reasons',
+    noFailures: 'No failures',
+    engagementDepth: 'Engagement Depth',
+    median: 'Median',
+    noData: 'No data',
   },
 };
 
