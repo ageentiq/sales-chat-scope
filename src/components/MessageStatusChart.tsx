@@ -76,7 +76,7 @@ export const MessageStatusChart = ({ conversations = [], onExport }: MessageStat
       label: t('statusSent') || 'Sent',
       count: statusCounts.sent,
       icon: Check,
-      color: 'text-gray-500',
+      color: 'text-gray-400',
       bgColor: 'bg-gray-100',
     },
     {
@@ -84,8 +84,8 @@ export const MessageStatusChart = ({ conversations = [], onExport }: MessageStat
       label: t('statusDelivered') || 'Delivered',
       count: statusCounts.delivered,
       icon: CheckCheck,
-      color: 'text-green-500',
-      bgColor: 'bg-green-50',
+      color: 'text-gray-400',
+      bgColor: 'bg-gray-100',
     },
     {
       key: 'read',
