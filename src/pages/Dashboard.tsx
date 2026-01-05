@@ -201,7 +201,7 @@ const Dashboard = () => {
 
         <main className="px-4 md:px-8 py-6 md:py-8 space-y-6">
           {/* Row 1: North Star KPI Tiles */}
-          <KPIRow>
+          <KPIRow title="Key Performance Indicators" titleAr="مؤشرات الأداء الرئيسية">
             {/* 1. Conversations Started */}
             <KPITile
               title={t('conversationsStarted')}
