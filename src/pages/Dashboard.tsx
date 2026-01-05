@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUniqueConversations, useConversations, useTransitionStats } from "@/hooks/useConversations";
-import { MessageCircle, Users, Clock, Activity, PhoneOff, Star, ThumbsDown, Briefcase, TrendingUp, CheckCheck, Target, Zap } from "lucide-react";
+import { MessageCircle, Users, Clock, PhoneOff, Star, ThumbsDown, Briefcase, TrendingUp, CheckCheck, Target } from "lucide-react";
 import { ConversationsChart } from "@/components/ConversationsChart";
 import { MessageStatusChart } from "@/components/MessageStatusChart";
 import { DateFilter, DateFilterOption, DateRange, getDateRangeForOption } from "@/components/DateFilter";
@@ -14,6 +14,7 @@ import { toast } from "@/hooks/use-toast";
 import { KPITile } from "@/components/dashboard/KPITile";
 import { KPIRow } from "@/components/dashboard/KPIRow";
 import { CompareToggle } from "@/components/dashboard/CompareToggle";
+import { ConversionFunnel } from "@/components/dashboard/ConversionFunnel";
 import { useDashboardMetrics, formatResponseTime } from "@/hooks/useDashboardMetrics";
 
 const Dashboard = () => {
@@ -284,6 +285,12 @@ const Dashboard = () => {
               compareEnabled={compareEnabled}
             />
           </KPIRow>
+
+          {/* Row 2: Conversion Funnel (Centerpiece) */}
+          <ConversionFunnel 
+            stages={metrics.funnelStages} 
+            outcomes={metrics.outcomeBreakdown} 
+          />
 
           {/* Message Status Analytics */}
           <MessageStatusChart conversations={filteredData.allConversations} onExport={handleExportMessageStatus} />

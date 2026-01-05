@@ -16,6 +16,24 @@ interface SparklinePoint {
   value: number;
 }
 
+// Funnel stage interface
+export interface FunnelStage {
+  id: string;
+  label: string;
+  labelAr: string;
+  count: number;
+  conversionRate: number; // % conversion from previous stage
+  color: string;
+}
+
+// Outcome breakdown interface
+export interface OutcomeBreakdown {
+  createProspect: number;
+  futureInterest: number;
+  notInterested: number;
+  noResponse: number;
+}
+
 interface DashboardMetrics {
   // Volume
   conversationsStarted: number;
@@ -59,6 +77,10 @@ interface DashboardMetrics {
   sentMessages: number;
   deliveredMessages: number;
   readMessages: number;
+  
+  // Funnel data
+  funnelStages: FunnelStage[];
+  outcomeBreakdown: OutcomeBreakdown;
 }
 
 interface UseDashboardMetricsProps {
@@ -317,6 +339,61 @@ export const useDashboardMetrics = ({
       return days;
     };
 
+    // Build funnel stages
+    const totalSent = currentStatus.sent + currentStatus.delivered + currentStatus.read + currentStatus.failed;
+    const totalDelivered = currentStatus.delivered + currentStatus.read;
+    const totalRead = currentStatus.read;
+    
+    const funnelStages: FunnelStage[] = [
+      {
+        id: 'conversations',
+        label: 'Conversations',
+        labelAr: 'المحادثات',
+        count: conversationsStarted,
+        conversionRate: 100,
+        color: 'bg-blue-500',
+      },
+      {
+        id: 'sent',
+        label: 'Sent',
+        labelAr: 'مُرسل',
+        count: totalSent,
+        conversionRate: conversationsStarted > 0 ? (totalSent / conversationsStarted) * 100 : 0,
+        color: 'bg-gray-500',
+      },
+      {
+        id: 'delivered',
+        label: 'Delivered',
+        labelAr: 'تم الإرسال',
+        count: totalDelivered,
+        conversionRate: totalSent > 0 ? (totalDelivered / totalSent) * 100 : 0,
+        color: 'bg-teal-500',
+      },
+      {
+        id: 'read',
+        label: 'Read',
+        labelAr: 'تمت القراءة',
+        count: totalRead,
+        conversionRate: totalDelivered > 0 ? (totalRead / totalDelivered) * 100 : 0,
+        color: 'bg-blue-600',
+      },
+      {
+        id: 'active',
+        label: 'Active',
+        labelAr: 'نشط',
+        count: activeConversations,
+        conversionRate: conversationsStarted > 0 ? (activeConversations / conversationsStarted) * 100 : 0,
+        color: 'bg-purple-500',
+      },
+    ];
+
+    const outcomeBreakdown: OutcomeBreakdown = {
+      createProspect: transitionStats?.createProspect || 0,
+      futureInterest: transitionStats?.futureInterest || 0,
+      notInterested: transitionStats?.notInterested || 0,
+      noResponse: transitionStats?.noResponse || 0,
+    };
+
     return {
       conversationsStarted,
       conversationsStartedDelta,
@@ -353,6 +430,9 @@ export const useDashboardMetrics = ({
       sentMessages: currentStatus.sent,
       deliveredMessages: currentStatus.delivered,
       readMessages: currentStatus.read,
+      
+      funnelStages,
+      outcomeBreakdown,
     };
   }, [allConversations, uniqueConversations, dateRange, compareEnabled, transitionStats]);
 };
