@@ -20,7 +20,7 @@ const StatusIndicator = ({ status, t }: { status?: MessageStatus; t: (key: strin
   
   const statusConfig = {
     sent: { icon: Check, color: "text-gray-400", bg: "bg-gray-100", label: t('statusSent') },
-    delivered: { icon: CheckCheck, color: "text-emerald-500", bg: "bg-emerald-50", label: t('statusDelivered') },
+    delivered: { icon: CheckCheck, color: "text-gray-400", bg: "bg-gray-100", label: t('statusDelivered') },
     read: { icon: CheckCheck, color: "text-blue-500", bg: "bg-blue-50", label: t('statusRead') },
     failed: { icon: AlertCircle, color: "text-red-500", bg: "bg-red-50", label: t('statusFailed') },
   };
