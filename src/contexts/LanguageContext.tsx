@@ -234,6 +234,8 @@ const translations = {
     engagementDepth: 'عمق التفاعل',
     median: 'الوسيط',
     noData: 'لا توجد بيانات',
+    // Phase 5 Stakeholder Summary
+    stakeholderSummary: 'ملخص الأداء',
   },
   en: {
     home: 'Home',
@@ -458,6 +460,8 @@ const translations = {
     engagementDepth: 'Engagement Depth',
     median: 'Median',
     noData: 'No data',
+    // Phase 5 Stakeholder Summary
+    stakeholderSummary: 'Key Insights',
   },
 };
 
