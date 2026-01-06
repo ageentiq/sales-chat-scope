@@ -76,7 +76,7 @@ export const ConversionFunnel = ({ stages, outcomes }: ConversionFunnelProps) =>
                     </div>
                     {index > 0 && (
                       <div className="text-sm text-gray-500 mt-2">
-                        <span className={stage.conversionRate >= 70 ? 'text-green-600 font-semibold' : stage.conversionRate >= 40 ? 'text-amber-600 font-semibold' : 'text-red-500 font-semibold'}>
+                        <span className="font-semibold">
                           {stage.conversionRate.toFixed(0)}%
                         </span>
                         <span className="text-gray-400 ml-1">{t('ofTotal')}</span>
@@ -118,7 +118,7 @@ export const ConversionFunnel = ({ stages, outcomes }: ConversionFunnelProps) =>
                       {item.count.toLocaleString()}
                     </div>
                     <div className="text-sm text-gray-500 mt-1">
-                      <span className={percent >= 30 ? 'text-green-600 font-semibold' : percent >= 15 ? 'text-amber-600 font-semibold' : 'text-gray-500'}>
+                      <span className="font-semibold">
                         {percent.toFixed(0)}%
                       </span>
                       <span className="text-gray-400 ml-1">{t('ofTotal')}</span>
