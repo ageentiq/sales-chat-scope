@@ -96,51 +96,36 @@ export const ConversionFunnel = ({ stages, outcomes }: ConversionFunnelProps) =>
           })}
         </div>
 
-        {/* Outcomes Breakdown */}
+        {/* Customers Analysis Cards */}
         {totalOutcomes > 0 && (
           <div className="mt-6 pt-4 border-t border-gray-100">
-            <h4 className="text-xs md:text-sm font-medium text-gray-600 mb-3">{t('outcomeBreakdown')}</h4>
-            <div className="space-y-2">
-              {/* Stacked bar */}
-              <div className="flex h-6 rounded-lg overflow-hidden bg-gray-100">
-                {outcomeItems.map(item => {
-                  const percent = totalOutcomes > 0 ? (item.count / totalOutcomes) * 100 : 0;
-                  if (percent === 0) return null;
-                  return (
-                    <Tooltip key={item.key}>
-                      <TooltipTrigger asChild>
-                        <div 
-                          className={`${item.color} hover:opacity-80 transition-opacity cursor-default flex items-center justify-center`}
-                          style={{ width: `${percent}%` }}
-                        >
-                          {percent >= 10 && (
-                            <span className="text-[10px] md:text-xs text-white font-medium">
-                              {percent.toFixed(0)}%
-                            </span>
-                          )}
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="font-medium">{language === 'ar' ? item.labelAr : item.label}</p>
-                        <p className="text-xs">{item.count} ({percent.toFixed(1)}%)</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  );
-                })}
-              </div>
-              
-              {/* Legend */}
-              <div className="flex flex-wrap gap-x-4 gap-y-1">
-                {outcomeItems.map(item => (
-                  <div key={item.key} className="flex items-center gap-1.5">
-                    <div className={`w-2 h-2 rounded-full ${item.color}`}></div>
-                    <span className="text-[10px] md:text-xs text-gray-600">
-                      {language === 'ar' ? item.labelAr : item.label}
-                    </span>
-                    <span className="text-[10px] md:text-xs font-medium text-gray-900">{item.count}</span>
+            <h4 className="text-sm md:text-base font-semibold text-gray-700 mb-4">{t('outcomeBreakdown')}</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {outcomeItems.map(item => {
+                const percent = totalOutcomes > 0 ? (item.count / totalOutcomes) * 100 : 0;
+                return (
+                  <div 
+                    key={item.key}
+                    className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200 hover:border-primary/30 hover:shadow-md transition-all"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
+                      <span className="text-sm font-medium text-gray-700">
+                        {language === 'ar' ? item.labelAr : item.label}
+                      </span>
+                    </div>
+                    <div className="text-2xl font-bold text-gray-900 tabular-nums">
+                      {item.count.toLocaleString()}
+                    </div>
+                    <div className="text-sm text-gray-500 mt-1">
+                      <span className={percent >= 30 ? 'text-green-600 font-semibold' : percent >= 15 ? 'text-amber-600 font-semibold' : 'text-gray-500'}>
+                        {percent.toFixed(0)}%
+                      </span>
+                      <span className="text-gray-400 ml-1">{t('ofTotal')}</span>
+                    </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
           </div>
         )}
