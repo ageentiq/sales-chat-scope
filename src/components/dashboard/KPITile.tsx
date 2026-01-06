@@ -74,19 +74,19 @@ export const KPITile = ({
 
   return (
     <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden group min-h-[130px]">
-      <CardContent className="p-5 h-full flex flex-col">
+      <CardContent className="p-3 sm:p-4 lg:p-5 h-full flex flex-col">
         {/* Header with icon */}
-        <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start justify-between mb-2 sm:mb-3">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm md:text-base font-semibold text-gray-600">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-600 truncate">
                 {title}
               </h3>
               {tooltip && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className={cn("p-2 rounded-lg shrink-0", iconBgColor)}>
-                      <Icon className={cn("h-4 w-4 md:h-5 md:w-5", iconColor)} />
+                    <div className={cn("p-1.5 sm:p-2 rounded-lg shrink-0", iconBgColor)}>
+                      <Icon className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-5 lg:w-5", iconColor)} />
                     </div>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs">
@@ -95,8 +95,8 @@ export const KPITile = ({
                 </Tooltip>
               )}
               {!tooltip && (
-                <div className={cn("p-2 rounded-lg shrink-0", iconBgColor)}>
-                  <Icon className={cn("h-4 w-4 md:h-5 md:w-5", iconColor)} />
+                <div className={cn("p-1.5 sm:p-2 rounded-lg shrink-0", iconBgColor)}>
+                  <Icon className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-5 lg:w-5", iconColor)} />
                 </div>
               )}
             </div>
@@ -104,21 +104,21 @@ export const KPITile = ({
         </div>
 
         {/* Main value and sparkline */}
-        <div className="flex items-end justify-between gap-2 mt-auto">
+        <div className="flex items-end justify-between gap-1 sm:gap-2 mt-auto">
           <div className="flex-1 min-w-0">
-            <div className="flex items-baseline gap-2 flex-wrap">
-              <span className="text-2xl md:text-3xl font-bold text-gray-900 tabular-nums">
+            <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+              <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 tabular-nums">
                 {value}
               </span>
               {secondaryValue !== undefined && secondaryLabel && (
-                <span className="text-sm text-gray-500">
+                <span className="text-xs sm:text-sm text-gray-500">
                   <span className="text-primary font-semibold">{secondaryValue}</span>
                   <span className="text-xs ml-1">{secondaryLabel}</span>
                 </span>
               )}
             </div>
             {subtitle && (
-              <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1 truncate">{subtitle}</p>
             )}
           </div>
           
