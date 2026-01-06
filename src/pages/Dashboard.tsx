@@ -13,6 +13,7 @@ import { exportConversations, exportMessages, exportSummaryStats, exportMessageS
 import { toast } from "@/hooks/use-toast";
 import { KPITile } from "@/components/dashboard/KPITile";
 import { KPIRow } from "@/components/dashboard/KPIRow";
+import { Separator } from "@/components/ui/separator";
 import { CompareToggle } from "@/components/dashboard/CompareToggle";
 import { ConversionFunnel } from "@/components/dashboard/ConversionFunnel";
 import { TrendsChart } from "@/components/dashboard/TrendsChart";
@@ -283,11 +284,15 @@ const Dashboard = () => {
             />
           </KPIRow>
 
+          <Separator className="h-[2px] bg-gray-300" />
+
           {/* Row 2: Conversion Funnel (Centerpiece) */}
           <ConversionFunnel 
             stages={metrics.funnelStages} 
             outcomes={metrics.outcomeBreakdown} 
           />
+
+          <Separator className="h-[2px] bg-gray-300" />
 
           {/* Row 3: Trends Over Time */}
           <TrendsChart 
@@ -295,8 +300,12 @@ const Dashboard = () => {
             transitionStats={transitionStats}
           />
 
+          <Separator className="h-[2px] bg-gray-300" />
+
           {/* Row 4: Diagnostics Panel */}
           <DiagnosticsPanel allConversations={filteredData.allConversations} />
+
+          <Separator className="h-[2px] bg-gray-300" />
 
           {/* Row 5: Stakeholder Summary */}
           <StakeholderSummary metrics={metrics} compareEnabled={compareEnabled} />
