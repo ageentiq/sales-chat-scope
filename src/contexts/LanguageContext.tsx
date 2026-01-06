@@ -221,7 +221,7 @@ const translations = {
     deliveryRateTooltip: 'نسبة الرسائل التي تم تسليمها أو قراءتها من إجمالي الرسائل المرسلة',
     prospectRateTooltip: 'نسبة المحادثات التي تحولت إلى عملاء محتملين',
     // Phase 2 Conversion Funnel
-    conversionFunnel: 'مسار التحويل',
+    conversionFunnel: 'مسار العملاء',
     fromPrevious: 'من السابق',
     conversionRate: 'معدل التحويل',
     outcomeBreakdown: 'تحليل العملاء',
@@ -452,7 +452,7 @@ const translations = {
     deliveryRateTooltip: 'Percentage of messages delivered or read out of total sent messages',
     prospectRateTooltip: 'Percentage of conversations converted to prospects',
     // Phase 2 Conversion Funnel
-    conversionFunnel: 'Conversion Funnel',
+    conversionFunnel: 'Customer Funnel',
     fromPrevious: 'from previous',
     conversionRate: 'conversion rate',
     outcomeBreakdown: 'Customers Analysis',
