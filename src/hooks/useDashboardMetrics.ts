@@ -406,8 +406,8 @@ export const useDashboardMetrics = ({
     const funnelStages: FunnelStage[] = [
       {
         id: 'conversations',
-        label: 'Started',
-        labelAr: 'بدأت',
+        label: 'Customers',
+        labelAr: 'العملاء',
         count: conversationsStarted,
         conversionRate: 100,
         color: 'bg-blue-500',
