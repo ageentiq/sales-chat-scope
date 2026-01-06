@@ -60,6 +60,25 @@ export const KPITile = ({
     return `M ${points.join(' L ')}`;
   }, [sparklineData]);
 
+  // Auto-scale text size based on content length
+  const getValueTextClass = useMemo(() => {
+    const valueStr = String(value);
+    const len = valueStr.length;
+    
+    if (len <= 3) return "text-xl sm:text-2xl lg:text-3xl";
+    if (len <= 5) return "text-lg sm:text-xl lg:text-2xl";
+    if (len <= 7) return "text-base sm:text-lg lg:text-xl";
+    return "text-sm sm:text-base lg:text-lg";
+  }, [value]);
+
+  const getTitleTextClass = useMemo(() => {
+    const len = title.length;
+    
+    if (len <= 12) return "text-xs sm:text-sm lg:text-base";
+    if (len <= 18) return "text-xs sm:text-xs lg:text-sm";
+    return "text-[10px] sm:text-xs lg:text-xs";
+  }, [title]);
+
   const getDeltaColor = (delta: number) => {
     if (delta > 0) return "text-green-600 bg-green-50";
     if (delta < 0) return "text-red-600 bg-red-50";
@@ -79,7 +98,7 @@ export const KPITile = ({
         <div className="flex items-start justify-between mb-2 sm:mb-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <h3 className="text-xs sm:text-sm lg:text-base font-semibold text-gray-600 truncate">
+              <h3 className={cn("font-semibold text-gray-600 truncate", getTitleTextClass)}>
                 {title}
               </h3>
               {tooltip && (
@@ -107,7 +126,7 @@ export const KPITile = ({
         <div className="flex items-end justify-between gap-1 sm:gap-2 mt-auto">
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
-              <span className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 tabular-nums">
+              <span className={cn("font-bold text-gray-900 tabular-nums", getValueTextClass)}>
                 {value}
               </span>
               {secondaryValue !== undefined && secondaryLabel && (
