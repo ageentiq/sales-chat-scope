@@ -49,6 +49,7 @@ interface DashboardMetrics {
   // Response
   responseRate: number;
   responseRateDelta: number | null;
+  respondedCount: number;
   
   // Speed
   firstResponseTimeMedian: number;
@@ -60,6 +61,7 @@ interface DashboardMetrics {
   // Reach
   deliverySuccessRate: number;
   deliverySuccessRateDelta: number | null;
+  deliveredCount: number;
   readRate: number;
   failedRate: number;
   failedCount: number;
@@ -473,6 +475,7 @@ export const useDashboardMetrics = ({
       
       responseRate,
       responseRateDelta,
+      respondedCount: uniqueStages.respondedCount,
       
       firstResponseTimeMedian,
       firstResponseTimeP90,
@@ -482,6 +485,7 @@ export const useDashboardMetrics = ({
       
       deliverySuccessRate,
       deliverySuccessRateDelta,
+      deliveredCount: uniqueStages.deliveredCount + uniqueStages.readCount + uniqueStages.respondedCount,
       readRate,
       failedRate,
       failedCount: currentStatus.failed,

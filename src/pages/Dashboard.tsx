@@ -245,6 +245,7 @@ const Dashboard = () => {
             <KPITile
               title={t('responseRate')}
               value={`${metrics.responseRate.toFixed(0)}%`}
+              subtitle={`${metrics.respondedCount} ${t('responded')}`}
               icon={TrendingUp}
               iconColor="text-purple-600"
               iconBgColor="bg-purple-100"
@@ -259,7 +260,7 @@ const Dashboard = () => {
             <KPITile
               title={t('deliveryRate')}
               value={`${metrics.deliverySuccessRate.toFixed(0)}%`}
-              subtitle={`${metrics.failedRate.toFixed(1)}% ${t('failed')}`}
+              subtitle={`${metrics.deliveredCount} ${t('delivered')}`}
               icon={CheckCheck}
               iconColor="text-teal-600"
               iconBgColor="bg-teal-100"
