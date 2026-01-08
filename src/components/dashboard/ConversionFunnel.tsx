@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { FunnelStage, OutcomeBreakdown } from "@/hooks/useDashboardMetrics";
-import { Users, Check, CheckCheck, MessageSquare, XCircle, Target } from "lucide-react";
+import { Users, Check, CheckCheck, MessageSquare, XCircle, Target, ChevronRight } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useNavigate } from "react-router-dom";
 
 interface ConversionFunnelProps {
   stages: FunnelStage[];
@@ -11,6 +12,7 @@ interface ConversionFunnelProps {
 
 export const ConversionFunnel = ({ stages, outcomes }: ConversionFunnelProps) => {
   const { t, language } = useLanguage();
+  const navigate = useNavigate();
 
   // Returns icon component and custom color class for WhatsApp-style status
   const getStageIconConfig = (id: string): { Icon: typeof Users; colorClass: string } => {
@@ -106,13 +108,17 @@ export const ConversionFunnel = ({ stages, outcomes }: ConversionFunnelProps) =>
                 return (
                   <div 
                     key={item.key}
-                    className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200 hover:border-primary/30 hover:shadow-md transition-all"
+                    onClick={() => navigate(`/customer-analysis?type=${item.key}`)}
+                    className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200 hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group"
                   >
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
-                      <span className="text-sm font-medium text-gray-700">
-                        {language === 'ar' ? item.labelAr : item.label}
-                      </span>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
+                        <span className="text-sm font-medium text-gray-700">
+                          {language === 'ar' ? item.labelAr : item.label}
+                        </span>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                     <div className="text-2xl font-bold text-gray-900 tabular-nums">
                       {item.count.toLocaleString()}
