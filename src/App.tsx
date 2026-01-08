@@ -12,6 +12,7 @@ import { Languages } from "lucide-react";
 import Dashboard from "./pages/Dashboard";
 import Messages from "./pages/Messages";
 import Settings from "./pages/Settings";
+import CustomerAnalysis from "./pages/CustomerAnalysis";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -55,6 +56,7 @@ function AppLayout() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/customer-analysis" element={<CustomerAnalysis />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
